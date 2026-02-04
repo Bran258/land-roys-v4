@@ -19,13 +19,18 @@ const HeaderAdministrativo = () => {
   return (
     <header className="h-[80px] w-full bg-white border-b border-gray-200 px-6 flex items-center justify-between shadow-sm">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-yellow-400 flex items-center justify-center font-bold text-black">
-          LR
+        <div className="w-24 h-24 rounded-lg flex items-center justify-center">
+          <img
+            src="/Logo_land_roys.webp"
+            alt="Land Roys"
+            className="w-full h-full object-contain"
+          />
         </div>
         <span className="text-xl font-bold tracking-tight text-gray-800">
           Land Roys
         </span>
       </div>
+
 
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-2 text-gray-700">

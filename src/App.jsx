@@ -15,6 +15,15 @@ import Home from "./pages/client/home/Home";
 import Login from "./pages/admin/auth/Login";
 import Dashboard from "./pages/admin/dashboard/Dashboard";
 import Slider from "./pages/admin/slider/Slider";
+import Home_secciones from "./pages/admin/home_secciones/Home_secciones";
+import Ranking from "./components/admin/home_secciones/Ranking";
+import Ofertas from "./components/admin/home_secciones/Ofertas";
+import Experiencia from "./components/admin/home_secciones/Experiencia";
+
+import Inventarios from "./pages/admin/inventarios/Inventarios";
+import GestionInventarioMoto from "./components/admin/inventarios/motos/GestionInventarioMoto";
+
+
 
 function App() {
   return (
@@ -41,6 +50,19 @@ function App() {
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="slider_gestion" element={<Slider />} />
+
+            {/* Home secciones como padre */}
+            <Route path="home_secciones" element={<Home_secciones />}>
+              <Route path="ranking" element={<Ranking />} />
+              <Route path="ofertas" element={<Ofertas />} />
+              <Route path="experiencia" element={<Experiencia />} />
+            </Route>
+
+            {/* Inventarios como padre */}
+            <Route path="inventarios" element={<Inventarios />} >
+              <Route path="gestion_motos" element={<GestionInventarioMoto />} />
+            </Route>
+            
           </Route>
         </Routes>
       </Router>

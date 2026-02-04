@@ -1,104 +1,125 @@
-import React, { useState, useEffect } from 'react';
-import { Zap, ShoppingBag } from 'lucide-react';
-import './Seccion_promociones.css';
+import React, { useEffect, useState } from "react";
+import { ArrowRight, Clock } from "lucide-react";
+import { getOfertasPublicas } from "../../../services/ofertas.public.service";
+import Compra_modal_oferta from "./Compra_modal_oferta";
 
 const Seccion_promociones = () => {
-  // Lógica del contador (Ejemplo: faltan 2 días, 14 horas...)
-  const [timeLeft, setTimeLeft] = useState({
-    dias: '02',
-    horas: '14',
-    min: '45',
-    seg: '09'
-  });
+  const [oferta, setOferta] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
 
-  // Efecto opcional para que el contador se mueva (solo segundos para el ejemplo)
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => ({
-        ...prev,
-        seg: (parseInt(prev.seg) > 0 ? String(parseInt(prev.seg) - 1).padStart(2, '0') : '59')
-      }));
-    }, 1000);
-    return () => clearInterval(timer);
+    const fetchOferta = async () => {
+      try {
+        const data = await getOfertasPublicas();
+        if (data && data.length > 0) {
+          setOferta(data[0]); // oferta semanal
+        }
+      } catch (error) {
+        console.error("Error cargando oferta", error);
+      }
+    };
+
+    fetchOferta();
   }, []);
 
+  if (!oferta) return null;
+
   return (
-    <section className="py-20 px-4 bg-slate-200">
-      <div className="max-w-6xl mx-auto">
-        {/* Contenedor Principal con Degradado */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-slate-400 to-slate-500 rounded-[3rem] p-8 md:p-16 flex flex-col md:flex-row items-center gap-12 shadow-2xl">
-          
-          {/* Lado Izquierdo: Texto y Contador */}
-          <div className="flex-1 space-y-8 z-10">
-            {/* Etiqueta Flash Sale */}
-            <div className="inline-flex items-center gap-2 bg-yellow-400 px-4 py-1.5 rounded-full shadow-lg">
-              <Zap size={14} fill="black" />
-              <span className="text-[10px] font-black tracking-widest uppercase">Flash Sale</span>
+    <>
+      <section className="bg-[#121212] min-h-screen flex items-center justify-center p-6 md:p-12">
+        <div className="container mx-auto max-w-6xl flex flex-col lg:flex-row items-center gap-12">
+
+          {/* Lado Izquierdo */}
+          <div className="relative w-full lg:w-1/2 flex justify-center">
+            <div className="absolute -top-6 -left-6 z-20 bg-yellow-400 w-24 h-24 rounded-full flex flex-col items-center justify-center shadow-[0_0_30px_rgba(250,204,21,0.4)] rotate-[-15deg]">
+              <span className="text-[10px] font-black uppercase">Descuento</span>
+              <span className="text-2xl font-black">-{oferta.descuento}%</span>
+              <span className="text-[10px] font-black uppercase">Off</span>
             </div>
 
-            <div className="space-y-4">
-              <h2 className="text-4xl md:text-6xl font-black text-white italic tracking-tighter leading-none">
-                OFERTAS POR VENCER
-              </h2>
-              <p className="text-slate-100/80 text-sm md:text-base max-w-md font-light">
-                Aprovecha hasta un <span className="text-yellow-400 font-bold">20% de descuento</span> en modelos seleccionados de la serie Urban. Solo por tiempo limitado.
-              </p>
+            <div className="relative z-10 bg-white p-4 shadow-2xl transform rotate-[-2deg] transition-transform hover:rotate-0 duration-500">
+              <img
+                src={oferta.imagen_url}
+                alt={oferta.titulo}
+                className="w-full max-w-md object-contain"
+              />
             </div>
-
-            {/* Contador UI */}
-            <div className="flex gap-4">
-              {Object.entries(timeLeft).map(([label, value]) => (
-                <div key={label} className="flex flex-col items-center">
-                  <div className="w-16 h-16 md:w-20 md:h-20 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl flex items-center justify-center shadow-inner">
-                    <span className="text-2xl md:text-3xl font-black text-white">{value}</span>
-                  </div>
-                  <span className="text-[10px] font-bold text-yellow-400 mt-2 uppercase tracking-tighter italic">
-                    {label}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Botón de Acción */}
-            <button className="flex items-center gap-3 bg-yellow-400 hover:bg-yellow-500 text-black font-black px-10 py-4 rounded-full transition-all hover:scale-105 active:scale-95 shadow-xl shadow-yellow-400/20 uppercase text-xs tracking-widest">
-              Consultar Ofertas
-              <ShoppingBag size={18} />
-            </button>
           </div>
 
-          {/* Lado Derecho: Imagen de Producto (Card Estilo Apple) */}
-          <div className="flex-1 relative z-10 seccion-promociones-image-desktop">
-            <div className="relative group">
-              {/* Card de la Moto */}
-              <div className="bg-slate-800 rounded-[2.5rem] overflow-hidden shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
-                <div className="relative aspect-square">
-                  <img 
-                    src="https://images.unsplash.com/photo-1558981403-c5f91cbba527?q=80&w=800&auto=format&fit=crop" 
-                    alt="Urban Swift R" 
-                    className="w-full h-full object-cover"
-                  />
-                  {/* Overlay de información sobre la foto */}
-                  <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/80 to-transparent">
-                    <span className="text-yellow-400 text-[10px] font-bold tracking-widest uppercase mb-1 block">Ultimas Unidades</span>
-                    <h3 className="text-2xl font-black text-white mb-2">Urban Swift R</h3>
-                    <div className="flex items-baseline gap-3">
-                      <span className="text-2xl font-black text-white">$4,999</span>
-                      <span className="text-sm text-white/40 line-through font-bold">$6,250</span>
-                    </div>
-                  </div>
+          {/* Lado Derecho */}
+          <div className="w-full lg:w-1/2 bg-[#1a1a1a] p-10 md:p-16 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/5 blur-[80px]" />
+
+            <div className="space-y-8 relative z-10">
+              <div className="flex items-center gap-3">
+                <div className="h-[1px] w-8 bg-yellow-400/50" />
+                <span className="text-yellow-400 text-[10px] font-black uppercase tracking-[0.4em]">
+                  Promoción Especial
+                </span>
+              </div>
+
+              <h2 className="text-5xl md:text-6xl font-black text-white leading-tight tracking-tighter">
+                {oferta.titulo.split(" ")[0]} <br />
+                <span className="text-yellow-400 italic">
+                  {oferta.titulo.replace(oferta.titulo.split(" ")[0], "")}
+                </span>
+              </h2>
+
+              <p className="text-gray-400 text-sm leading-relaxed max-w-md italic border-l-2 border-yellow-400/30 pl-6">
+                {oferta.descripcion}
+              </p>
+
+              {/* Precios */}
+              <div className="flex items-end gap-6">
+                <div>
+                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">
+                    Precio Normal
+                  </span>
+                  <span className="text-gray-500 line-through text-xl font-bold">
+                    S/ {oferta.precio_original}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-yellow-400 text-[10px] font-black uppercase tracking-widest block">
+                    Oferta
+                  </span>
+                  <span className="text-yellow-400 text-4xl font-black drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]">
+                    S/ {oferta.precio_especial}
+                  </span>
                 </div>
               </div>
 
-              {/* Efecto de resplandor detrás (Glow) */}
-              <div className="absolute -inset-4 bg-yellow-400/10 blur-3xl rounded-full -z-10 group-hover:bg-yellow-400/20 transition-colors" />
+              {/* Expiración */}
+              <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <Clock size={14} className="text-yellow-400" />
+                Válido hasta {new Date(oferta.expiracion).toLocaleDateString()}
+              </div>
+
+              {/* Botón */}
+              <button
+                onClick={() => setOpenModal(true)}
+                className="w-full group bg-yellow-400 hover:bg-yellow-500 text-black p-6 rounded-2xl flex items-center justify-between transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-yellow-400/20"
+              >
+                <span className="font-black uppercase text-sm tracking-widest">
+                  {oferta.textoboton || "Consultar Oferta"}
+                </span>
+                <div className="bg-black/10 p-2 rounded-xl group-hover:translate-x-1 transition-transform">
+                  <ArrowRight size={20} strokeWidth={3} />
+                </div>
+              </button>
             </div>
           </div>
-
-          {/* Elemento Decorativo: Circulo desenfocado en el fondo del banner */}
-          <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/10 blur-3xl rounded-full" />
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* MODAL */}
+      <Compra_modal_oferta
+        open={openModal}
+        onClose={() => setOpenModal(false)}
+        oferta={oferta}
+      />
+    </>
   );
 };
 

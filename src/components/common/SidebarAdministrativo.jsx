@@ -9,7 +9,9 @@ import {
     HelpCircle,
     ChevronLeft,
     ChevronRight,
-    Images,
+    GalleryHorizontal,
+    LayoutPanelLeft,
+
 } from "lucide-react";
 
 const SidebarAdministrativo = () => {
@@ -22,14 +24,19 @@ const SidebarAdministrativo = () => {
             path: "/admin/dashboard",
         },
         {
-            icon: <Images size={22} />,
+            icon: <GalleryHorizontal size={22} />,
             label: "Carrusel Gestión",
             path: "/admin/slider_gestion",
         },
         {
+            icon: <LayoutPanelLeft size={22} />,
+            label: "Home Secciónes",
+            path: "/admin/home_secciones",
+        },
+        {
             icon: <Box size={22} />,
-            label: "Inventario",
-            path: "/admin/inventario",
+            label: "Inventarios",
+            path: "/admin/inventarios",
         },
         {
             icon: <CircleDollarSign size={22} />,

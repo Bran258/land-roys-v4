@@ -62,7 +62,12 @@ const Slider = () => {
   const handleSaveSlide = async (slideToSave) => {
     try {
       await updateSlide(slideToSave.id, {
+        tag: slideToSave.tag,
         title: slideToSave.title,
+        destacar: slideToSave.destacar,
+        descripcion: slideToSave.descripcion,
+        name_btn_1: slideToSave.name_btn_1,
+        name_btn_2: slideToSave.name_btn_2,
         url_image: slideToSave.url_image || null,
         estado: slideToSave.estado,
       });

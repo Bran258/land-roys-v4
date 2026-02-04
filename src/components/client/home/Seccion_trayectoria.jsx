@@ -1,6 +1,9 @@
 import React from 'react';
 import { Award, Users, ShieldCheck, Headphones, Calendar } from 'lucide-react';
+
 import './Seccion_trayectoria.css';
+
+import landRoysImg from '../../../assets/img/Land_roys_experiencia.png';
 
 const Seccion_trayectoria = () => {
   const stats = [
@@ -38,7 +41,7 @@ const Seccion_trayectoria = () => {
     <section className="py-24 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-col lg:flex-row items-center gap-16">
-          
+
           {/* Lado Izquierdo: Texto y Stats */}
           <div className="flex-1 space-y-10">
             <div className="space-y-4">
@@ -69,7 +72,7 @@ const Seccion_trayectoria = () => {
 
             {/* Botón de Acción */}
             <button className="flex items-center gap-3 bg-black text-white px-8 py-4 rounded-full font-bold text-xs hover:bg-gray-800 transition-all shadow-xl active:scale-95 uppercase tracking-widest">
-                Agenda tu cita
+              Agenda tu cita
               <Calendar size={18} className="text-yellow-400" />
             </button>
           </div>
@@ -77,17 +80,17 @@ const Seccion_trayectoria = () => {
           {/* Lado Derecho: Imagen con Tarjeta Flotante */}
           <div className="flex-1 relative tarjeta-trayectoria-container">
             <div className="relative rounded-[3rem] overflow-hidden shadow-2xl">
-              <img 
-                src="https://images.unsplash.com/photo-1614165933391-90a612010860?q=80&w=800&auto=format&fit=crop" 
-                alt="Compromiso Land Roys" 
+              <img
+                src={landRoysImg}
+                alt="Compromiso Land Roys"
                 className="w-full h-[500px] object-cover"
               />
-              
+
               {/* Overlay de texto en la imagen */}
               <div className="absolute bottom-8 left-8 right-8">
                 <p className="text-white text-2xl font-black leading-tight">
-                   <span className="text-yellow-400 block text-xs uppercase tracking-[0.3em] mb-2 font-bold">Compromiso Land Roys</span>
-                   Pasión por la excelencia.
+                  <span className="text-yellow-400 block text-xs uppercase tracking-[0.3em] mb-2 font-bold">Compromiso Land Roys</span>
+                  Pasión por la excelencia.
                 </p>
               </div>
             </div>

@@ -1,6 +1,7 @@
 // src/context/AuthContext.jsx
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../api/Supabase.provider";
+import Landing from "../components/ui/Landing";
 
 const AuthContext = createContext(null);
 
@@ -97,7 +98,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ user, role, login, logout, loading }}>
-      {loading ? <div>Cargando...</div> : children}
+      {loading ? <Landing /> : children}
     </AuthContext.Provider>
   );
 };

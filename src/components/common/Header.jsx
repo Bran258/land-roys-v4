@@ -1,5 +1,5 @@
 import { Bike, MessageSquareQuote } from 'lucide-react';
-import { NavLink } from 'react-router-dom'; // <-- Usamos NavLink
+import { NavLink } from 'react-router-dom';
 
 const Header = () => {
     const navLinks = [
@@ -16,13 +16,16 @@ const Header = () => {
 
                     {/* Logo */}
                     <div className="flex items-center gap-2 cursor-pointer flex-shrink-0">
-                        <div className="bg-yellow-400 p-2 rounded-lg shadow-md hover:scale-110 transition-transform">
-                            <Bike size={28} className="text-black" />
-                        </div>
+                        <img
+                            src="/Logo_land_roys.webp"
+                            alt="Land Roys"
+                            className="w-24 h-24 object-contain hover:scale-110 transition-transform"
+                        />
                         <h1 className="text-2xl font-bold tracking-tighter text-gray-900">
                             Land <span className="text-yellow-500">Roys</span>
                         </h1>
                     </div>
+
 
                     {/* Navegación */}
                     <nav className="hidden md:flex items-center gap-8">
