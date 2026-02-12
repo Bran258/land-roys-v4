@@ -14,7 +14,7 @@ import {
   deleteCategoriaMoto,
   getCategoriasMotos,
   updateCategoriaMoto,
-} from "../../../services/Categoriasotos.service";
+} from "../../../services/CategoriasMotos.service";
 import {
   addRepuesto,
   deleteRepuesto,
