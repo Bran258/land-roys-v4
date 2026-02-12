@@ -3,7 +3,7 @@ import { Filter, Gauge, Boxes, DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { getMotos } from "../../../services/motos.service";
-import { getCategoriasMotos } from "../../../services/Categoriasmotos.service";
+import { getCategoriasMotos } from "../../../services/CategoriasMotos.service";
 
 const currency = new Intl.NumberFormat("en-US", {
   style: "currency",
