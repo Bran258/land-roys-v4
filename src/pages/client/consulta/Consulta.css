@@ -1,0 +1,30 @@
+/* Animación de zoom al cargar */
+.promo-img {
+    transform: scale(0.95);
+    opacity: 0;
+    transition: transform 0.6s ease-out, opacity 0.6s ease-out;
+}
+
+.promo-img.animate-in {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* Zoom al pasar el mouse */
+.promo-img:hover {
+    cursor: pointer;
+    transform: scale(1.05);
+    transition: transform 0.5s ease-in-out;
+}
+
+/* Animación del texto */
+.promo-text {
+    transform: translateY(20px);
+    opacity: 0;
+    transition: transform 0.8s ease-out, opacity 0.8s ease-out;
+}
+
+.promo-text.animate-in {
+    transform: translateY(0);
+    opacity: 1;
+}

@@ -42,7 +42,7 @@ const Footer = () => {
                     <div>
                         <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-6">Empresa</h3>
                         <ul className="space-y-4">
-                            <li><Link to="/sobre-nosotros" className="text-gray-500 hover:text-black text-sm transition-colors">Sobre Nosotros</Link></li>
+                            <li><Link to="/nosotros" className="text-gray-500 hover:text-black text-sm transition-colors">Sobre Nosotros</Link></li>
                             <li><Link to="/modelos" className="text-gray-500 hover:text-black text-sm transition-colors">Nuestros Modelos</Link></li>
                             <li><Link to="/servicio-tecnico" className="text-gray-500 hover:text-black text-sm transition-colors">Servicio Técnico</Link></li>
                             <li><Link to="/blog" className="text-gray-500 hover:text-black text-sm transition-colors">Blog</Link></li>
@@ -66,7 +66,7 @@ const Footer = () => {
                         <ul className="space-y-4">
                             <li className="flex items-start gap-3 text-gray-500 text-sm">
                                 <MapPin size={18} className="text-yellow-500 shrink-0" />
-                                <span>Av. Principal de Motos #123, Ciudad de México</span>
+                                <span>Av. Madre de Dios #298, Ciudad de Puerto Maldonado</span>
                             </li>
                             <li className="flex items-center gap-3 text-gray-500 text-sm">
                                 <Phone size={18} className="text-yellow-500 shrink-0" />

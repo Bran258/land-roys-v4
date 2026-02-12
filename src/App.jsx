@@ -10,6 +10,8 @@ import AdminLayout from "./layout/AdminLayout";
 
 /* Páginas cliente */
 import Home from "./pages/client/home/Home";
+import Nosotros from "./pages/client/nosotros/Nosotros"; 
+import Consulta from "./pages/client/consulta/Consulta";
 
 /* Páginas admin */
 import Login from "./pages/admin/auth/Login";
@@ -22,6 +24,15 @@ import Experiencia from "./components/admin/home_secciones/Experiencia";
 
 import Inventarios from "./pages/admin/inventarios/Inventarios";
 import GestionInventarioMoto from "./components/admin/inventarios/motos/GestionInventarioMoto";
+import Inventario from "./pages/admin/inventario/Inventario";
+import Ventas from "./pages/admin/ventas/Ventas";
+import Reportes from "./pages/admin/reportes/Reportes";
+import Clientes from "./pages/admin/clientes/Clientes";
+import Modelos from "./pages/client/modelos/Modelos";
+import ModeloDetalle from "./pages/client/modelos/ModeloDetalle";
+import Repuestos from "./pages/client/repuestos/Repuestos";
+
+
 
 
 
@@ -33,6 +44,11 @@ function App() {
           {/* Rutas cliente */}
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
+            <Route path="/modelos" element={<Modelos />} />
+            <Route path="/modelos/:id" element={<ModeloDetalle />} />
+            <Route path="/repuestos" element={<Repuestos />} />
+            <Route path="/nosotros" element={<Nosotros />} />
+            <Route path="/consulta" element={<Consulta />} />
           </Route>
 
           {/* Login admin */}
@@ -50,6 +66,10 @@ function App() {
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="slider_gestion" element={<Slider />} />
+            <Route path="inventario" element={<Inventario />} />
+            <Route path="ventas" element={<Ventas />} />
+            <Route path="clientes" element={<Clientes />} />
+            <Route path="reportes" element={<Reportes />} />
 
             {/* Home secciones como padre */}
             <Route path="home_secciones" element={<Home_secciones />}>
@@ -62,7 +82,7 @@ function App() {
             <Route path="inventarios" element={<Inventarios />} >
               <Route path="gestion_motos" element={<GestionInventarioMoto />} />
             </Route>
-            
+
           </Route>
         </Routes>
       </Router>

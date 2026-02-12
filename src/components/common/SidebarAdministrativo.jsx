@@ -11,6 +11,7 @@ import {
     ChevronRight,
     GalleryHorizontal,
     LayoutPanelLeft,
+    ChartArea,
 
 } from "lucide-react";
 
@@ -34,9 +35,14 @@ const SidebarAdministrativo = () => {
             path: "/admin/home_secciones",
         },
         {
-            icon: <Box size={22} />,
-            label: "Inventarios",
+            icon: <ChartArea size={22} />,
+            label: "Reporte Invetarios",
             path: "/admin/inventarios",
+        },
+        {
+            icon: <Box size={22} />,
+            label: "Inventario",
+            path: "/admin/inventario",
         },
         {
             icon: <CircleDollarSign size={22} />,

@@ -74,7 +74,9 @@ const GestionInventarioMoto = () => {
           </div>
         </div>
 
-        <button className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-black px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95">
+        <button
+          onClick={() => navigate("/admin/inventario")}
+          className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-black px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95">
           <Plus size={16} strokeWidth={3} /> Agregar Nueva Moto
         </button>
       </div>

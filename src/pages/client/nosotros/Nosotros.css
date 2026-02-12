@@ -1,0 +1,28 @@
+.hero {
+  background-color: black;
+}
+
+.hero-bg {
+  background-image: url('../../../assets/img/Moto_ZKM250.webp');
+  background-size: cover;
+  background-position: center;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-overlay {
+  background-color: rgba(0,0,0,0.5);
+  position: absolute;
+  inset: 0;
+}
+
+.foundation-badge {
+  position: absolute;
+  bottom: -1.5rem;
+  left: -1.5rem;
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}

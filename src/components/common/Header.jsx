@@ -1,4 +1,4 @@
-import { Bike, MessageSquareQuote } from 'lucide-react';
+import { MessageSquareQuote } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
 const Header = () => {
@@ -6,7 +6,7 @@ const Header = () => {
         { name: 'Inicio', path: '/' },
         { name: 'Modelos', path: '/modelos' },
         { name: 'Repuestos', path: '/repuestos' },
-        { name: 'Nosotros', path: '/nosotros' },
+        { name: 'Sobre Nosotros', path: '/nosotros' },
     ];
 
     return (
@@ -26,7 +26,6 @@ const Header = () => {
                         </h1>
                     </div>
 
-
                     {/* Navegación */}
                     <nav className="hidden md:flex items-center gap-8">
                         {navLinks.map((link) => (
@@ -34,17 +33,19 @@ const Header = () => {
                                 key={link.name}
                                 to={link.path}
                                 className={({ isActive }) =>
-                                    `text-sm font-semibold relative group ${isActive ? 'text-black' : 'text-gray-600 hover:text-black'
-                                    }`
+                                    `text-sm font-semibold relative group ${isActive ? 'text-black' : 'text-gray-600 hover:text-black'}`
                                 }
                             >
-                                {link.name}
-                                <span
-                                    className={`absolute -bottom-1 left-0 h-0.5 bg-yellow-400 transition-all duration-300 ${
-                                        // Si está activo, ancho completo
-                                        window.location.pathname === link.path ? 'w-full' : 'w-0 group-hover:w-full'
-                                        }`}
-                                ></span>
+                                {({ isActive }) => (
+                                    <>
+                                        {link.name}
+                                        <span
+                                            className={`absolute -bottom-1 left-0 h-0.5 bg-yellow-400 transition-all duration-300 ${
+                                                isActive ? 'w-full' : 'w-0 group-hover:w-full'
+                                            }`}
+                                        ></span>
+                                    </>
+                                )}
                             </NavLink>
                         ))}
                     </nav>
@@ -54,8 +55,7 @@ const Header = () => {
                         <NavLink
                             to="/consulta"
                             className={({ isActive }) =>
-                                `flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm shadow-lg transition-all active:scale-95 ${isActive ? 'bg-yellow-400 text-black' : 'bg-black text-white hover:bg-gray-800'
-                                }`
+                                `flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm shadow-lg transition-all active:scale-95 ${isActive ? 'bg-yellow-400 text-black' : 'bg-black text-white hover:bg-gray-800'}`
                             }
                         >
                             <MessageSquareQuote size={18} className="text-yellow-400 transition-transform" />
