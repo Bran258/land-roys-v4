@@ -2,6 +2,7 @@ import React from "react";
 import { LogOut, UserCircle } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import logoHeaderLandRoys from "../../assets/LogoHeaderCompleto.png";
 
 const HeaderAdministrativo = () => {
   const { logout, user, role } = useAuth();
@@ -18,17 +19,12 @@ const HeaderAdministrativo = () => {
 
   return (
     <header className="h-[80px] w-full bg-white border-b border-gray-200 px-6 flex items-center justify-between shadow-sm">
-      <div className="flex items-center gap-3">
-        <div className="w-24 h-24 rounded-lg flex items-center justify-center">
-          <img
-            src="/Logo_land_roys.webp"
-            alt="Land Roys"
-            className="w-full h-full object-contain"
-          />
-        </div>
-        <span className="text-xl font-bold tracking-tight text-gray-800">
-          Land Roys
-        </span>
+      <div className="flex items-center mb-4">
+        <img
+          src={logoHeaderLandRoys}   // tu nueva imagen
+          alt="Land Roys - Logo oficial"
+          className="w-48 object-contain"
+        />
       </div>
 
 

@@ -4,6 +4,7 @@ import Seccion_top from '../../../components/client/home/Seccion_top'
 import Seccion_promociones from '../../../components/client/home/Seccion_promociones'
 import Seccion_trayectoria from '../../../components/client/home/Seccion_trayectoria'
 
+
 const Home = () => {
   return (
     <>

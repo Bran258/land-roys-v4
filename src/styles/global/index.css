@@ -1,19 +1,44 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #ffd900;       /* Blanco como color principal */
-  --color-secondary: #778da9;     /* Azul secundario */
-  --color-accent: #caf0f8;        /* Celeste para botones o iconos */
-  --color-background: #ffffff;    /* Fondo general */
-  --color-text: #1a1a1a;          /* Texto general */
-  --color-text-light: #ffffff;    /* Texto claro sobre fondo oscuro */
-  --color-gold: #d4af37;          /* Dorado para destacar elementos */
+  --color-primary: #ffd900;
+  /* Blanco como color principal */
+  --color-secondary: #778da9;
+  /* Azul secundario */
+  --color-accent: #caf0f8;
+  /* Celeste para botones o iconos */
+  --color-background: #ffffff;
+  /* Fondo general */
+  --color-text: #1a1a1a;
+  /* Texto general */
+  --color-text-light: #ffffff;
+  /* Texto claro sobre fondo oscuro */
+  --color-gold: #d4af37;
+  /* Dorado para destacar elementos */
 
   --font-h1: 'Montserrat', sans-serif;
   --font-h2: 'Montserrat', sans-serif;
   --font-h3: 'Raleway', sans-serif;
   --font-h4: 'Raleway', sans-serif;
   --font-body: 'Raleway', sans-serif;
+
+
+
+  /* El núcleo de tu color dorado */
+  --Color-Dorado-Base: #EB9D23;
+  --Color-Dorado-Brillo: #FFF200;
+  --Color-Dorado-Sombra: #E6910B;
+
+  /* El gradiente completo como una sola variable */
+  --Gradient-Dorado-Metal:
+    repeating-linear-gradient(90deg,
+      rgba(255, 255, 255, 0) 0px,
+      rgba(255, 255, 255, 0.05) 1px,
+      rgba(255, 255, 255, 0) 2px),
+    radial-gradient(circle at top left,
+      var(--Color-Dorado-Sombra) 0%,
+      var(--Color-Dorado-Base) 40%,
+      var(--Color-Dorado-Brillo) 100%);
 }
 
 
@@ -24,34 +49,40 @@ body {
   font-family: var(--font-body);
 }
 
-
+.texto-dorado-metal {
+    background: var(--Gradient-Dorado-Metal);
+    -webkit-background-clip: text; /* Para Safari y Chrome */
+    background-clip: text;
+    color: transparent;            /* Hace el texto invisible para ver el fondo */
+    display: inline-block;          /* Asegura que el gradiente cubra bien el texto */
+    font-weight: bold;              /* El efecto metálico luce mejor en fuentes gruesas */
+}
 
 h1 {
   font-family: var(--font-h1);
   font-size: 36px;
   font-weight: bold;
-  color: var(--color-primary);
+  
 }
 
 h2 {
   font-family: var(--font-h2);
   font-size: 30px;
   font-weight: 600;
-  color: var(--color-primary);
+  
 }
 
 h3 {
   font-family: var(--font-h3);
   font-size: 24px;
   font-weight: 500;
-  color: var(--color-secondary);
 }
 
 h4 {
   font-family: var(--font-h4);
   font-size: 20px;
   font-weight: 400;
-  color: var(--color-secondary);
+  
 }
 
 a {

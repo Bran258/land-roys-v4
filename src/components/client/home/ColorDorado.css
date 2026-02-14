@@ -1,0 +1,60 @@
+.cuadro-color-dorado {
+    width: 400px;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.7);
+    /* Un negro suavizado queda más elegante */
+
+    /* Graduación lineal para simular el reflejo cilíndrico de la imagen */
+    background: linear-gradient(to bottom,
+            #bf953f,
+            #fcf6ba 25%,
+            #b38728 50%,
+            #fbf5b7 75%,
+            #aa771c 100%);
+
+    border-radius: 12px;
+    border: 1px solid #997010;
+    /* Un borde fino define mejor el metal */
+
+    box-shadow:
+        inset 0 2px 5px rgba(255, 255, 255, 0.5),
+        0 8px 15px rgba(0, 0, 0, 0.3);
+}
+
+
+.cuadro-color-dorado-vertical {
+    width: 150px;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    border: 1px solid #9c6b1a;
+    /* Borde oscuro basado en tu color */
+
+    /* CAPA 1: Textura de micro-líneas (el "cepillado") */
+    /* CAPA 2: Gradiente metálico usando #EB9D23 */
+    background:
+        repeating-linear-gradient(90deg,
+            rgba(255, 255, 255, 0) 0px,
+            rgba(255, 255, 255, 0.05) 1px,
+            rgba(255, 255, 255, 0) 2px),
+        radial-gradient(circle at top left,
+            #E6910B 0%,
+            #FFD700 40%,
+            #FFF200 100%);
+
+    /* Efecto de profundidad y relieve */
+    box-shadow:
+        inset 0 0 15px rgba(0, 0, 0, 0.2),
+        0 10px 20px rgba(0, 0, 0, 0.4);
+
+    /* Estilo de texto */
+    color: #2b1d04;
+    font-weight: bold;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+}
