@@ -1044,12 +1044,57 @@ const Inventario = () => {
     }
   };
 
+
+
+  const collectRepuestoDescendantIds = (rootId) => {
+    const descendants = [];
+
+    const walk = (parentId) => {
+      const children = categoriasRepuestos.filter((categoria) => categoria.parent_id === parentId);
+      children.forEach((child) => {
+        walk(child.id);
+        descendants.push(child.id);
+      });
+    };
+
+    walk(rootId);
+    return descendants;
+  };
+
   const handleDeleteCategoria = async (id) => {
-    const childCategorias = categoriasRepuestos.filter((categoria) => categoria.parent_id === id);
+    const descendantIds = collectRepuestoDescendantIds(id);
+    const categoryIdsToDelete = [id, ...descendantIds];
+
+    const categoriasRelacionadas = categoriasRepuestos.filter((categoria) =>
+      categoryIdsToDelete.includes(categoria.id)
+    );
+    const categoryNames = categoriasRelacionadas
+      .map((categoria) => (categoria.nombre || "").toLowerCase())
+      .filter(Boolean);
+
+    const linkedByForeignKey = repuestos.filter((repuesto) =>
+      repuesto.categoria_id && categoryIdsToDelete.includes(repuesto.categoria_id)
+    );
+
+    const linkedByLegacyText = repuestos.filter(
+      (repuesto) => !repuesto.categoria_id && categoryNames.includes((repuesto.categoria || "").toLowerCase())
+    );
+
+    const linkedRepuestos = [...new Map([...linkedByForeignKey, ...linkedByLegacyText].map((item) => [item.id, item])).values()];
+
+    if (linkedRepuestos.length > 0) {
+      Swal.fire(
+        "No se puede eliminar",
+        `Hay ${linkedRepuestos.length} repuesto(s) asociados a esta categoría o sus subcategorías. Reasígnalos antes de eliminar.`,
+        "warning"
+      );
+      return;
+    }
+
     const result = await Swal.fire({
       title: "¿Eliminar categoría?",
-      text: childCategorias.length
-        ? `Esta categoría tiene ${childCategorias.length} subcategoría(s). Se eliminarán también.`
+      text: descendantIds.length
+        ? `Esta categoría tiene ${descendantIds.length} subcategoría(s). Se eliminarán también.`
         : "Esta acción no se puede deshacer",
       icon: "warning",
       showCancelButton: true,
@@ -1061,17 +1106,17 @@ const Inventario = () => {
     if (!result.isConfirmed) return;
 
     try {
-      if (childCategorias.length > 0) {
-        await Promise.all(childCategorias.map((child) => deleteCategoriaRepuesto(child.id)));
+      if (descendantIds.length > 0) {
+        await Promise.all(descendantIds.map((categoriaId) => deleteCategoriaRepuesto(categoriaId)));
       }
       await deleteCategoriaRepuesto(id);
-      setCategoriasRepuestos((prev) => prev.filter((cat) => cat.id !== id && cat.parent_id !== id));
-      if (repuestoForm.categoria_id === id) {
+      setCategoriasRepuestos((prev) => prev.filter((cat) => !categoryIdsToDelete.includes(cat.id)));
+      if (categoryIdsToDelete.includes(repuestoForm.categoria_id)) {
         setRepuestoForm((prev) => ({ ...prev, categoria_id: "" }));
         setRepuestoSubcategoriaId("");
         setRepuestoTipoId("");
       }
-      if (categoriaEditingId === id) resetCategoriaForm();
+      if (categoriaEditingId && categoryIdsToDelete.includes(categoriaEditingId)) resetCategoriaForm();
       Swal.fire("Eliminado", "Categoría eliminada", "success");
     } catch (error) {
       console.error(error);
