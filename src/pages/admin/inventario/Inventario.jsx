@@ -67,6 +67,7 @@ const initialRepuestoForm = {
 const initialCategoriaForm = {
   nombre: "",
   estado: true,
+  parent_id: "",
 };
 
 const initialCategoriaMotoForm = {
@@ -80,8 +81,14 @@ const tabs = [
   { key: "repuestos", label: "Repuestos", icon: Wrench },
 ];
 
-const buildRepuestoCategoryLabel = (categorias, categoriaId, fallback = "Otros") =>
-  categorias.find((categoria) => categoria.id === categoriaId)?.nombre || fallback;
+const buildRepuestoCategoryLabel = (categorias, categoriaId, fallback = "Otros") => {
+  const categoria = categorias.find((item) => item.id === categoriaId);
+  if (!categoria) return fallback;
+  const parent = categoria.parent_id
+    ? categorias.find((item) => item.id === categoria.parent_id)
+    : null;
+  return parent ? `${parent.nombre} / ${categoria.nombre}` : categoria.nombre;
+};
 
 const buildMotoCategoryLabel = (categorias, parentId, fallback = "Sin tipo") =>
   categorias.find((categoria) => categoria.id === parentId)?.nombre || fallback;
@@ -179,6 +186,9 @@ const Inventario = () => {
   const [categoriasRepuestos, setCategoriasRepuestos] = useState([]);
   const [categoriaForm, setCategoriaForm] = useState(initialCategoriaForm);
   const [categoriaEditingId, setCategoriaEditingId] = useState(null);
+  const [isCreatingRepuestoType, setIsCreatingRepuestoType] = useState(false);
+  const [repuestoTipoId, setRepuestoTipoId] = useState("");
+  const [repuestoSubcategoriaId, setRepuestoSubcategoriaId] = useState("");
   const [categoriasMotos, setCategoriasMotos] = useState([]);
   const [categoriaMotoForm, setCategoriaMotoForm] = useState(initialCategoriaMotoForm);
   const [categoriaMotoEditingId, setCategoriaMotoEditingId] = useState(null);
@@ -301,12 +311,37 @@ const Inventario = () => {
     return motos.filter((m) => (m.categoria || "").toLowerCase() === filtroCategoria.toLowerCase());
   }, [motos, filtroCategoria, motoTipos, subcategoriasPorTipo]);
 
-  const repuestoCategorias = useMemo(() => ["all", ...categoriasRepuestos.map((cat) => cat.id)], [categoriasRepuestos]);
+  const repuestoTipos = useMemo(() => categoriasRepuestos.filter((categoria) => !categoria.parent_id), [categoriasRepuestos]);
+
+  const repuestoSubcategoriasPorTipo = useMemo(() => {
+    return categoriasRepuestos
+      .filter((categoria) => categoria.parent_id)
+      .reduce((acc, categoria) => {
+        const key = categoria.parent_id;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(categoria);
+        return acc;
+      }, {});
+  }, [categoriasRepuestos]);
+
+  const repuestoSubcategoriasVisibles = useMemo(() => {
+    if (!repuestoTipoId) return [];
+    return repuestoSubcategoriasPorTipo[repuestoTipoId] || [];
+  }, [repuestoTipoId, repuestoSubcategoriasPorTipo]);
+
+  const repuestoCategorias = useMemo(() => ["all", ...repuestoTipos.map((cat) => cat.id)], [repuestoTipos]);
 
   const repuestosFiltrados = useMemo(() => {
     if (repuestoFiltroCategoria === "all") return repuestos;
-    return repuestos.filter((r) => r.categoria_id === repuestoFiltroCategoria);
-  }, [repuestos, repuestoFiltroCategoria]);
+
+    const children = repuestoSubcategoriasPorTipo[repuestoFiltroCategoria] || [];
+    if (children.length === 0) {
+      return repuestos.filter((r) => (r.categoria_parent_id || r.categoria_id) === repuestoFiltroCategoria);
+    }
+
+    const childrenIds = new Set(children.map((child) => child.id));
+    return repuestos.filter((r) => childrenIds.has(r.categoria_id));
+  }, [repuestos, repuestoFiltroCategoria, repuestoSubcategoriasPorTipo]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -397,6 +432,27 @@ const Inventario = () => {
     setCategoriaForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
   };
 
+  const handleRepuestoTipoChange = (tipoId) => {
+    setRepuestoTipoId(tipoId);
+    setRepuestoSubcategoriaId("");
+    setRepuestoForm((prev) => ({ ...prev, categoria_id: tipoId || "" }));
+  };
+
+  const handleRepuestoSubcategoriaChange = (subcategoriaId) => {
+    setRepuestoSubcategoriaId(subcategoriaId);
+    const selected = subcategoriaId || repuestoTipoId || "";
+    setRepuestoForm((prev) => ({ ...prev, categoria_id: selected }));
+  };
+
+  const handleCategoriaCreateChild = (tipo) => {
+    setCategoriaEditingId(null);
+    setCategoriaForm({
+      ...initialCategoriaForm,
+      parent_id: tipo.id,
+    });
+    setIsCreatingRepuestoType(false);
+  };
+
   const handleCategoriaMotoChange = (e) => {
     const { name, value, type, checked } = e.target;
     setCategoriaMotoForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
@@ -405,6 +461,7 @@ const Inventario = () => {
   const resetCategoriaForm = () => {
     setCategoriaForm(initialCategoriaForm);
     setCategoriaEditingId(null);
+    setIsCreatingRepuestoType(false);
   };
 
   const resetCategoriaMotoForm = () => {
@@ -438,6 +495,8 @@ const Inventario = () => {
     setRepuestoForm(initialRepuestoForm);
     setRepuestoEditingId(null);
     setRepuestoModalOpen(false);
+    setRepuestoTipoId("");
+    setRepuestoSubcategoriaId("");
     setRepuestoImageFile(null);
     setRepuestoImagePreview("");
     setRepuestoImageUrlError("");
@@ -465,11 +524,15 @@ const Inventario = () => {
   };
 
   const handleOpenRepuestoModal = () => {
+    const defaultSubcategoria = categoriasRepuestos.find((categoria) => categoria.parent_id) || null;
+    const defaultTipo = defaultSubcategoria?.parent_id || repuestoTipos[0]?.id || "";
     setRepuestoEditingId(null);
     setRepuestoForm({
       ...initialRepuestoForm,
-      categoria_id: categoriasRepuestos[0]?.id || "",
+      categoria_id: defaultSubcategoria?.id || defaultTipo || "",
     });
+    setRepuestoTipoId(defaultTipo);
+    setRepuestoSubcategoriaId(defaultSubcategoria?.id || "");
     setRepuestoModalOpen(true);
     setRepuestoImageFile(null);
     setRepuestoImagePreview("");
@@ -481,7 +544,9 @@ const Inventario = () => {
     setCategoriaForm({
       nombre: categoria.nombre || "",
       estado: categoria.estado ?? true,
+      parent_id: categoria.parent_id || "",
     });
+    setIsCreatingRepuestoType(!categoria.parent_id);
   };
 
   const handleCategoriaMotoEdit = (categoria) => {
@@ -537,6 +602,8 @@ const Inventario = () => {
       repuesto.categoria_id ||
       categoriasRepuestos.find((categoria) => categoria.nombre === repuesto.categoria)?.id ||
       "";
+    const categoriaMatch = categoriasRepuestos.find((categoria) => categoria.id === categoriaId);
+    const tipoId = categoriaMatch?.parent_id || (categoriaMatch ? categoriaMatch.id : "");
     setRepuestoEditingId(repuesto.id);
     setRepuestoForm({
       nombre: repuesto.nombre || "",
@@ -547,6 +614,8 @@ const Inventario = () => {
       estado: repuesto.estado || "disponible",
       imagen_url: repuesto.imagen_url || "",
     });
+    setRepuestoTipoId(tipoId || "");
+    setRepuestoSubcategoriaId(categoriaMatch?.parent_id ? categoriaMatch.id : "");
     setRepuestoImagePreview(repuesto.imagen_url || "");
     setRepuestoImageFile(null);
     setRepuestoImageUrlError("");
@@ -752,7 +821,9 @@ const Inventario = () => {
   const handleRepuestoSubmit = async (e) => {
     e.preventDefault();
 
-    if (!repuestoForm.nombre.trim() || !repuestoForm.categoria_id) {
+    const selectedCategoriaId = repuestoSubcategoriaId || repuestoTipoId || repuestoForm.categoria_id;
+
+    if (!repuestoForm.nombre.trim() || !selectedCategoriaId) {
       Swal.fire("Validación", "Nombre y categoría son obligatorios", "warning");
       return;
     }
@@ -762,11 +833,23 @@ const Inventario = () => {
       return;
     }
 
-    const selectedCategoria = categoriasRepuestos.find((categoria) => categoria.id === repuestoForm.categoria_id);
+    const selectedSubcategoria = repuestoSubcategoriaId
+      ? categoriasRepuestos.find((categoria) => categoria.id === repuestoSubcategoriaId)
+      : null;
+    const selectedTipo = repuestoTipoId
+      ? categoriasRepuestos.find((categoria) => categoria.id === repuestoTipoId)
+      : null;
+    const selectedCategoria = selectedSubcategoria || selectedTipo;
+
+    if (!selectedCategoria) {
+      Swal.fire("Validación", "Selecciona una categoría válida", "warning");
+      return;
+    }
+
     const payload = {
       nombre: repuestoForm.nombre.trim(),
-      categoria: selectedCategoria?.nombre || "",
-      categoria_id: repuestoForm.categoria_id,
+      categoria: selectedCategoria.nombre || "",
+      categoria_id: selectedCategoria.id,
       descripcion: repuestoForm.descripcion.trim() || null,
       precio: Number(repuestoForm.precio),
       stock: Number(repuestoForm.stock),
@@ -862,14 +945,24 @@ const Inventario = () => {
       return;
     }
 
+    if (!isCreatingRepuestoType && repuestoTipos.length > 0 && !categoriaForm.parent_id) {
+      Swal.fire("Validación", "Selecciona un tipo para la subcategoría", "warning");
+      return;
+    }
+
     setSaving(true);
     try {
+      const payload = {
+        ...categoriaForm,
+        parent_id: isCreatingRepuestoType ? null : categoriaForm.parent_id || null,
+      };
+
       if (categoriaEditingId) {
-        const updated = await updateCategoriaRepuesto(categoriaEditingId, categoriaForm);
+        const updated = await updateCategoriaRepuesto(categoriaEditingId, payload);
         setCategoriasRepuestos((prev) => prev.map((cat) => (cat.id === categoriaEditingId ? updated : cat)));
         Swal.fire("Actualizado", "Categoría actualizada correctamente", "success");
       } else {
-        const created = await addCategoriaRepuesto(categoriaForm);
+        const created = await addCategoriaRepuesto(payload);
         setCategoriasRepuestos((prev) => [...prev, created].sort((a, b) => a.nombre.localeCompare(b.nombre)));
         Swal.fire("Creado", "Categoría creada correctamente", "success");
       }
@@ -952,9 +1045,12 @@ const Inventario = () => {
   };
 
   const handleDeleteCategoria = async (id) => {
+    const childCategorias = categoriasRepuestos.filter((categoria) => categoria.parent_id === id);
     const result = await Swal.fire({
       title: "¿Eliminar categoría?",
-      text: "Esta acción no se puede deshacer",
+      text: childCategorias.length
+        ? `Esta categoría tiene ${childCategorias.length} subcategoría(s). Se eliminarán también.`
+        : "Esta acción no se puede deshacer",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Sí, eliminar",
@@ -965,10 +1061,15 @@ const Inventario = () => {
     if (!result.isConfirmed) return;
 
     try {
+      if (childCategorias.length > 0) {
+        await Promise.all(childCategorias.map((child) => deleteCategoriaRepuesto(child.id)));
+      }
       await deleteCategoriaRepuesto(id);
-      setCategoriasRepuestos((prev) => prev.filter((cat) => cat.id !== id));
+      setCategoriasRepuestos((prev) => prev.filter((cat) => cat.id !== id && cat.parent_id !== id));
       if (repuestoForm.categoria_id === id) {
-        setRepuestoForm((prev) => ({ ...prev, categoria_id: categoriasRepuestos[0]?.id || "" }));
+        setRepuestoForm((prev) => ({ ...prev, categoria_id: "" }));
+        setRepuestoSubcategoriaId("");
+        setRepuestoTipoId("");
       }
       if (categoriaEditingId === id) resetCategoriaForm();
       Swal.fire("Eliminado", "Categoría eliminada", "success");
@@ -1395,9 +1496,56 @@ const Inventario = () => {
                     name="nombre"
                     value={categoriaForm.nombre}
                     onChange={handleCategoriaChange}
-                    placeholder="Ej. Frenos"
+                    placeholder={isCreatingRepuestoType ? "Ej. Motor" : "Ej. Filtros"}
                     className="mt-2 w-full border rounded-xl px-3 py-2 bg-white"
                   />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wide text-gray-500">
+                    <span>Modo de creación</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsCreatingRepuestoType(false)}
+                      className={`px-3 py-1.5 rounded-full ${
+                        !isCreatingRepuestoType ? "bg-slate-900 text-white" : "bg-gray-100 text-gray-500"
+                      }`}
+                    >
+                      Subcategoría
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsCreatingRepuestoType(true)}
+                      className={`px-3 py-1.5 rounded-full ${
+                        isCreatingRepuestoType ? "bg-yellow-400 text-black" : "bg-gray-100 text-gray-500"
+                      }`}
+                    >
+                      Tipo principal
+                    </button>
+                  </div>
+                  <label className="text-sm font-semibold text-gray-700 block mt-3">
+                    {isCreatingRepuestoType ? "Tipo" : "Asignar tipo"}
+                  </label>
+                  <select
+                    name="parent_id"
+                    value={categoriaForm.parent_id}
+                    onChange={handleCategoriaChange}
+                    disabled={isCreatingRepuestoType}
+                    className="mt-2 w-full border rounded-xl px-3 py-2 bg-white disabled:bg-gray-100 disabled:text-gray-400"
+                  >
+                    <option value="">
+                      {isCreatingRepuestoType ? "Se creará como tipo principal" : "Selecciona un tipo"}
+                    </option>
+                    {repuestoTipos.map((tipo) => (
+                      <option key={tipo.id} value={tipo.id}>
+                        {tipo.nombre}
+                      </option>
+                    ))}
+                  </select>
+                  {!isCreatingRepuestoType && repuestoTipos.length === 0 && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      Crea un tipo principal primero para asignar subcategorías.
+                    </p>
+                  )}
                 </div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                   <input
@@ -1435,30 +1583,56 @@ const Inventario = () => {
                   {categoriasRepuestos.length === 0 ? (
                     <p className="text-sm text-gray-500">No hay categorías registradas.</p>
                   ) : (
-                    categoriasRepuestos.map((categoria) => (
-                      <div key={categoria.id} className="flex items-center justify-between gap-3 bg-gray-50 rounded-xl px-4 py-3">
-                        <div>
-                          <p className="text-sm font-bold text-slate-800">{categoria.nombre}</p>
-                          <p className="text-xs text-gray-400">ID: {categoria.id}</p>
+                    repuestoTipos.map((tipo) => (
+                      <div key={tipo.id} className="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-bold text-slate-800">{tipo.nombre}</p>
+                            <p className="text-xs text-gray-400">ID: {tipo.id}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs font-bold px-2 py-1 rounded-full ${tipo.estado ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-500"}`}>
+                              {tipo.estado ? "Activa" : "Inactiva"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleCategoriaCreateChild(tipo)}
+                              className="px-3 py-1.5 text-xs font-bold rounded-full bg-yellow-400 text-black"
+                            >
+                              + Subcategoría
+                            </button>
+                            <button type="button" onClick={() => handleCategoriaEdit(tipo)} className="p-2 rounded-lg border border-blue-200 text-blue-600">
+                              <Pencil size={14} />
+                            </button>
+                            <button type="button" onClick={() => handleDeleteCategoria(tipo.id)} className="p-2 rounded-lg border border-red-200 text-red-500">
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className={`text-xs font-bold px-2 py-1 rounded-full ${categoria.estado ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-500"}`}>
-                            {categoria.estado ? "Activa" : "Inactiva"}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleCategoriaEdit(categoria)}
-                            className="p-2 rounded-lg border border-blue-200 text-blue-600"
-                          >
-                            <Pencil size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteCategoria(categoria.id)}
-                            className="p-2 rounded-lg border border-red-200 text-red-500"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                        <div className="space-y-2 pl-2 border-l-2 border-yellow-200">
+                          {(repuestoSubcategoriasPorTipo[tipo.id] || []).length === 0 ? (
+                            <p className="text-xs text-gray-400">Sin subcategorías.</p>
+                          ) : (
+                            (repuestoSubcategoriasPorTipo[tipo.id] || []).map((categoria) => (
+                              <div key={categoria.id} className="flex items-center justify-between gap-3 bg-white rounded-lg px-3 py-2">
+                                <div>
+                                  <p className="text-xs font-semibold text-slate-700">{categoria.nombre}</p>
+                                  <p className="text-[11px] text-gray-400">ID: {categoria.id}</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${categoria.estado ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-500"}`}>
+                                    {categoria.estado ? "Activa" : "Inactiva"}
+                                  </span>
+                                  <button type="button" onClick={() => handleCategoriaEdit(categoria)} className="p-1.5 rounded-lg border border-blue-200 text-blue-600">
+                                    <Pencil size={12} />
+                                  </button>
+                                  <button type="button" onClick={() => handleDeleteCategoria(categoria.id)} className="p-1.5 rounded-lg border border-red-200 text-red-500">
+                                    <Trash2 size={12} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))
+                          )}
                         </div>
                       </div>
                     ))
@@ -1908,14 +2082,30 @@ const Inventario = () => {
                 <input name="nombre" value={repuestoForm.nombre} onChange={handleRepuestoChange} placeholder="Ej. Filtro de Aceite" className="mt-2 w-full border rounded-xl px-3 py-2 bg-gray-50" />
               </div>
               <div>
-                <label className="text-sm font-semibold text-gray-700">Categoría</label>
+                <label className="text-sm font-semibold text-gray-700">Tipo</label>
                 <select
-                  name="categoria_id"
-                  value={repuestoForm.categoria_id}
-                  onChange={handleRepuestoChange}
+                  value={repuestoTipoId}
+                  onChange={(event) => handleRepuestoTipoChange(event.target.value)}
                   className="mt-2 w-full border rounded-xl px-3 py-2 bg-gray-50"
                 >
-                  {categoriasRepuestos.map((category) => (
+                  <option value="">Selecciona un tipo</option>
+                  {repuestoTipos.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-gray-700">Subcategoría</label>
+                <select
+                  value={repuestoSubcategoriaId}
+                  onChange={(event) => handleRepuestoSubcategoriaChange(event.target.value)}
+                  disabled={!repuestoTipoId}
+                  className="mt-2 w-full border rounded-xl px-3 py-2 bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
+                >
+                  <option value="">Sin subcategoría (usar tipo)</option>
+                  {repuestoSubcategoriasVisibles.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.nombre}
                     </option>
