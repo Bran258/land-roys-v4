@@ -72,11 +72,44 @@ const pickSpecs = (moto = {}) => normalizeSpecs(moto);
 
 const getMotoBucket = () => import.meta.env.VITE_SUPABASE_MOTOS_BUCKET || "motos";
 
-export const uploadMotoVideo = async (file) => {
+const sanitizeSegment = (value, fallback = "sin-valor") => {
+  if (!value) return fallback;
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-_]/g, "") || fallback;
+};
+
+const buildMotoMediaPath = ({ categoriaId, subcategoriaId, motoId, mediaType, ext }) => {
+  const safeCategory = sanitizeSegment(categoriaId, "sin-categoria");
+  const safeSubcategory = sanitizeSegment(subcategoriaId, "sin-subcategoria");
+  const safeMoto = sanitizeSegment(motoId, crypto.randomUUID());
+  const fileName = `${Date.now()}-${crypto.randomUUID()}.${ext}`;
+
+  const mediaFolderByType = {
+    hero: "hero",
+    logo_modelo: "logos/modelo",
+    logo_marca: "logos/marca",
+    galeria_especificaciones: "galeria/especificaciones",
+    galeria_diferencial: "galeria/diferencial",
+    video_principal: "video/principal",
+  };
+
+  const mediaFolder = mediaFolderByType[mediaType] || "extras";
+  return `modelos/${safeCategory}/${safeSubcategory}/${safeMoto}/${mediaFolder}/${fileName}`;
+};
+
+export const uploadMotoVideo = async (file, context = {}) => {
   const bucket = getMotoBucket();
   const ext = file.name.split(".").pop();
-  const fileName = `${crypto.randomUUID()}.${ext}`;
-  const filePath = `motos/videos/${fileName}`;
+  const filePath = buildMotoMediaPath({
+    categoriaId: context.categoriaId,
+    subcategoriaId: context.subcategoriaId,
+    motoId: context.motoId,
+    mediaType: context.mediaType || "video_principal",
+    ext,
+  });
 
   const { error } = await supabase.storage
     .from(bucket)
@@ -119,11 +152,16 @@ const executeWithFallback = async (requestFactory) => {
   return { data, error, payload };
 };
 
-export const uploadMotoImage = async (file) => {
+export const uploadMotoImage = async (file, context = {}) => {
   const bucket = getMotoBucket();
   const ext = file.name.split(".").pop();
-  const fileName = `${crypto.randomUUID()}.${ext}`;
-  const filePath = `motos/${fileName}`;
+  const filePath = buildMotoMediaPath({
+    categoriaId: context.categoriaId,
+    subcategoriaId: context.subcategoriaId,
+    motoId: context.motoId,
+    mediaType: context.mediaType || "hero",
+    ext,
+  });
 
   const { error } = await supabase.storage
     .from(bucket)
