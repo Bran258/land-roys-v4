@@ -51,6 +51,7 @@ const initialForm = {
   video_url: "",
   video_activo: false,
   video_file: null,
+  galeria_activa: false,
   galeria_destacada: [],
 };
 
@@ -89,9 +90,6 @@ const buildRepuestoCategoryLabel = (categorias, categoriaId, fallback = "Otros")
     : null;
   return parent ? `${parent.nombre} / ${categoria.nombre}` : categoria.nombre;
 };
-
-const buildMotoCategoryLabel = (categorias, parentId, fallback = "Sin tipo") =>
-  categorias.find((categoria) => categoria.id === parentId)?.nombre || fallback;
 
 const findMotoCategoriaByName = (categorias, nombre) =>
   categorias.find((categoria) => categoria.nombre?.toLowerCase() === nombre.toLowerCase()) || null;
@@ -176,6 +174,10 @@ const Inventario = () => {
   const [imageUrlError, setImageUrlError] = useState("");
   const [logoUrlError, setLogoUrlError] = useState("");
   const [brandLogoUrlError, setBrandLogoUrlError] = useState("");
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState("");
+  const [brandLogoFile, setBrandLogoFile] = useState(null);
+  const [brandLogoPreview, setBrandLogoPreview] = useState("");
   const [repuestoEditingId, setRepuestoEditingId] = useState(null);
   const [repuestoFiltroCategoria, setRepuestoFiltroCategoria] = useState("all");
   const [repuestoForm, setRepuestoForm] = useState(initialRepuestoForm);
@@ -488,6 +490,10 @@ const Inventario = () => {
     setImageFile(null);
     setImagePreview("");
     setImageUrlError("");
+    setLogoFile(null);
+    setLogoPreview("");
+    setBrandLogoFile(null);
+    setBrandLogoPreview("");
     setGaleriaItem(emptyGaleriaItem);
   };
 
@@ -520,6 +526,10 @@ const Inventario = () => {
     setImageFile(null);
     setImagePreview("");
     setImageUrlError("");
+    setLogoFile(null);
+    setLogoPreview("");
+    setBrandLogoFile(null);
+    setBrandLogoPreview("");
     setGaleriaItem(emptyGaleriaItem);
   };
 
@@ -586,6 +596,7 @@ const Inventario = () => {
       brand_logo_url: moto.brand_logo_url || "",
       video_url: moto.video_url || "",
       video_activo: Boolean(moto.video_url),
+      galeria_activa: normalizeGaleria(moto.galeria_destacada).length > 0,
       galeria_destacada: normalizeGaleria(moto.galeria_destacada),
     });
     setMotoTipoId(tipoId || "");
@@ -593,6 +604,10 @@ const Inventario = () => {
     setImagePreview(moto.imagen_url || "");
     setImageFile(null);
     setImageUrlError("");
+    setLogoFile(null);
+    setLogoPreview("");
+    setBrandLogoFile(null);
+    setBrandLogoPreview("");
     setGaleriaItem(emptyGaleriaItem);
     setModalOpen(true);
   };
@@ -658,6 +673,45 @@ const Inventario = () => {
     const file = event.target.files?.[0];
     if (!file) return;
     setForm((prev) => ({ ...prev, video_file: file }));
+  };
+
+  const handleLogoFileChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+    setLogoUrlError("");
+  };
+
+  const handleBrandLogoFileChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setBrandLogoFile(file);
+    setBrandLogoPreview(URL.createObjectURL(file));
+    setBrandLogoUrlError("");
+  };
+
+  const handleClearLogoImage = () => {
+    setLogoFile(null);
+    setLogoPreview("");
+    setLogoUrlError("");
+    setForm((prev) => ({ ...prev, logo_url: "" }));
+  };
+
+  const handleClearBrandLogoImage = () => {
+    setBrandLogoFile(null);
+    setBrandLogoPreview("");
+    setBrandLogoUrlError("");
+    setForm((prev) => ({ ...prev, brand_logo_url: "" }));
+  };
+
+  const handleGaleriaToggle = () => {
+    setForm((prev) => ({
+      ...prev,
+      galeria_activa: !prev.galeria_activa,
+      galeria_destacada: prev.galeria_activa ? [] : prev.galeria_destacada,
+    }));
+    setGaleriaItem(emptyGaleriaItem);
   };
 
   const handleClearRepuestoImage = () => {
@@ -749,6 +803,8 @@ const Inventario = () => {
       return;
     }
 
+    const selectedCategoriaId = selectedSubcategoria?.id || selectedTipo?.id || null;
+
     const payload = {
       nombre: form.nombre.trim(),
       marca: form.marca.trim() || null,
@@ -769,13 +825,15 @@ const Inventario = () => {
       video_url: form.video_activo ? form.video_url.trim() || null : null,
       logo_url: normalizeStorageUrl(form.logo_url) || null,
       brand_logo_url: normalizeStorageUrl(form.brand_logo_url) || null,
-      galeria_destacada: form.galeria_destacada
+      galeria_destacada: form.galeria_activa
+        ? form.galeria_destacada
         .filter((item) => item.imagen_url && isValidUrl(item.imagen_url))
         .map((item) => ({
           imagen_url: normalizeStorageUrl(item.imagen_url.trim()),
           titulo: item.titulo?.trim() || "",
           descripcion: item.descripcion?.trim() || "",
-        })),
+        }))
+        : [],
     };
 
     if (Number.isNaN(payload.precio) || Number.isNaN(payload.stock)) {
@@ -785,15 +843,56 @@ const Inventario = () => {
 
     setSaving(true);
     try {
+      const hasLocalMedia = Boolean(imageFile || logoFile || brandLogoFile || (form.video_activo && form.video_file));
+      let motoIdForMedia = editingId;
+      let createdMoto = null;
+
+      if (!editingId && hasLocalMedia) {
+        createdMoto = await addMoto(payload);
+        motoIdForMedia = createdMoto.id;
+      }
+
       if (imageFile) {
         setUploading(true);
-        const publicUrl = await uploadMotoImage(imageFile);
+        const publicUrl = await uploadMotoImage(imageFile, {
+          categoriaId: motoTipoId,
+          subcategoriaId: selectedCategoriaId,
+          motoId: motoIdForMedia,
+          mediaType: "hero",
+        });
         payload.imagen_url = publicUrl;
+      }
+
+      if (logoFile) {
+        setUploading(true);
+        const publicUrl = await uploadMotoImage(logoFile, {
+          categoriaId: motoTipoId,
+          subcategoriaId: selectedCategoriaId,
+          motoId: motoIdForMedia,
+          mediaType: "logo_modelo",
+        });
+        payload.logo_url = publicUrl;
+      }
+
+      if (brandLogoFile) {
+        setUploading(true);
+        const publicUrl = await uploadMotoImage(brandLogoFile, {
+          categoriaId: motoTipoId,
+          subcategoriaId: selectedCategoriaId,
+          motoId: motoIdForMedia,
+          mediaType: "logo_marca",
+        });
+        payload.brand_logo_url = publicUrl;
       }
 
       if (form.video_activo && form.video_file) {
         setUploadingVideo(true);
-        const publicUrl = await uploadMotoVideo(form.video_file);
+        const publicUrl = await uploadMotoVideo(form.video_file, {
+          categoriaId: motoTipoId,
+          subcategoriaId: selectedCategoriaId,
+          motoId: motoIdForMedia,
+          mediaType: "video_principal",
+        });
         payload.video_url = publicUrl;
         setForm((prev) => ({ ...prev, video_file: null, video_url: publicUrl }));
       }
@@ -803,7 +902,9 @@ const Inventario = () => {
         setMotos((prev) => prev.map((m) => (m.id === editingId ? updated : m)));
         Swal.fire("Actualizado", "Modelo actualizado correctamente", "success");
       } else {
-        const created = await addMoto(payload);
+        const created = createdMoto
+          ? await updateMoto(createdMoto.id, payload)
+          : await addMoto(payload);
         setMotos((prev) => [created, ...prev]);
         Swal.fire("Creado", "Modelo agregado al inventario", "success");
       }
@@ -1761,19 +1862,34 @@ const Inventario = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-semibold text-gray-700">Logo del modelo (URL)</label>
+                <label className="text-sm font-semibold text-gray-700">Logo del modelo</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoFileChange}
+                  className="mt-2 w-full text-sm text-gray-600"
+                />
                 <input
                   name="logo_url"
                   value={form.logo_url}
                   onChange={handleChange}
-                  placeholder="https://..."
+                  placeholder="o pega una URL https://..."
                   className="mt-2 w-full border rounded-xl px-3 py-2 bg-gray-50"
                 />
                 {logoUrlError && <p className="text-xs text-red-500 mt-1">{logoUrlError}</p>}
-                {isValidUrl(form.logo_url) && (
+                {(logoFile || form.logo_url) && (
+                  <button
+                    type="button"
+                    onClick={handleClearLogoImage}
+                    className="text-xs font-semibold text-gray-500 hover:text-gray-700 mt-2"
+                  >
+                    Limpiar logo del modelo
+                  </button>
+                )}
+                {(logoPreview || isValidUrl(form.logo_url)) && (
                   <div className="mt-3 rounded-xl border border-dashed border-gray-200 bg-gray-50 p-3 flex items-center justify-center">
                     <img
-                      src={normalizeStorageUrl(form.logo_url)}
+                      src={logoPreview || normalizeStorageUrl(form.logo_url)}
                       alt="Preview logo del modelo"
                       className="h-14 object-contain"
                     />
@@ -1781,19 +1897,34 @@ const Inventario = () => {
                 )}
               </div>
               <div>
-                <label className="text-sm font-semibold text-gray-700">Logo de la empresa (URL)</label>
+                <label className="text-sm font-semibold text-gray-700">Logo de la empresa</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleBrandLogoFileChange}
+                  className="mt-2 w-full text-sm text-gray-600"
+                />
                 <input
                   name="brand_logo_url"
                   value={form.brand_logo_url}
                   onChange={handleChange}
-                  placeholder="https://..."
+                  placeholder="o pega una URL https://..."
                   className="mt-2 w-full border rounded-xl px-3 py-2 bg-gray-50"
                 />
                 {brandLogoUrlError && <p className="text-xs text-red-500 mt-1">{brandLogoUrlError}</p>}
-                {isValidUrl(form.brand_logo_url) && (
+                {(brandLogoFile || form.brand_logo_url) && (
+                  <button
+                    type="button"
+                    onClick={handleClearBrandLogoImage}
+                    className="text-xs font-semibold text-gray-500 hover:text-gray-700 mt-2"
+                  >
+                    Limpiar logo de empresa
+                  </button>
+                )}
+                {(brandLogoPreview || isValidUrl(form.brand_logo_url)) && (
                   <div className="mt-3 rounded-xl border border-dashed border-gray-200 bg-gray-50 p-3 flex items-center justify-center">
                     <img
-                      src={normalizeStorageUrl(form.brand_logo_url)}
+                      src={brandLogoPreview || normalizeStorageUrl(form.brand_logo_url)}
                       alt="Preview logo de la empresa"
                       className="h-14 object-contain"
                     />
@@ -1945,14 +2076,25 @@ const Inventario = () => {
             </div>
 
             <div className="bg-[#f5f6f8] rounded-2xl p-4 border border-gray-100 space-y-4">
-              <div>
-                <p className="text-sm font-semibold text-gray-700">Galería después de especificaciones</p>
-                <p className="text-xs text-gray-500">
-                  Agrega imágenes y su descripción para el slider que aparece después de las especificaciones técnicas.
-                </p>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-gray-700">Galería después de especificaciones</p>
+                  <p className="text-xs text-gray-500">
+                    Activa para agregar imágenes y texto al slider después de las especificaciones técnicas.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGaleriaToggle}
+                  className={`px-4 py-2 rounded-xl text-sm font-bold transition ${
+                    form.galeria_activa ? "bg-yellow-400 text-black" : "bg-gray-200 text-gray-500"
+                  }`}
+                >
+                  {form.galeria_activa ? "Galería activa" : "Sin galería"}
+                </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr] gap-4 items-start">
+              {form.galeria_activa && <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr] gap-4 items-start">
                 <div className="space-y-3">
                   <div>
                     <label className="text-sm font-semibold text-gray-700">URL de la imagen</label>
@@ -2036,7 +2178,7 @@ const Inventario = () => {
                     </div>
                   )}
                 </div>
-              </div>
+              </div>}
             </div>
 
             <div>
