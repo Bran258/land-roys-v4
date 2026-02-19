@@ -1,0 +1,109 @@
+import { supabase } from "../api/Supabase.provider";
+
+const getMotoBucket = () => import.meta.env.VITE_SUPABASE_MOTOS_BUCKET || "motos";
+const getRepuestosBucket = () => import.meta.env.VITE_SUPABASE_REPUESTOS_BUCKET || "repuestos";
+
+const sanitizeSegment = (value, fallback = "sin-valor") => {
+  if (!value) return fallback;
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-_]/g, "") || fallback;
+};
+
+const ensureFolderMarker = async (bucket, folderPath) => {
+  const filePath = `${folderPath.replace(/\/+$/, "")}/.folder`;
+  const { error } = await supabase.storage.from(bucket).upload(filePath, new Uint8Array(), {
+    upsert: true,
+    contentType: "text/plain",
+  });
+  if (error) throw error;
+};
+
+const collectFilesRecursive = async (bucket, prefix) => {
+  const files = [];
+
+  const walk = async (path) => {
+    const { data, error } = await supabase.storage.from(bucket).list(path, {
+      limit: 100,
+      offset: 0,
+      sortBy: { column: "name", order: "asc" },
+    });
+
+    if (error) throw error;
+
+    for (const item of data || []) {
+      const itemPath = path ? `${path}/${item.name}` : item.name;
+      if (item.id === null) {
+        await walk(itemPath);
+      } else {
+        files.push(itemPath);
+      }
+    }
+  };
+
+  await walk(prefix);
+  return files;
+};
+
+const removeFolderRecursive = async (bucket, prefix) => {
+  const files = await collectFilesRecursive(bucket, prefix);
+  if (files.length === 0) return [];
+
+  const { error } = await supabase.storage.from(bucket).remove(files);
+  if (error) throw error;
+  return files;
+};
+
+export const ensureMotoCategoryFolder = async ({ parentId, categoryId }) => {
+  const bucket = getMotoBucket();
+  const safeCategory = sanitizeSegment(categoryId, "sin-categoria");
+
+  if (!parentId) {
+    await ensureFolderMarker(bucket, `modelos/${safeCategory}`);
+    return;
+  }
+
+  const safeParent = sanitizeSegment(parentId, "sin-categoria");
+  await ensureFolderMarker(bucket, `modelos/${safeParent}/${safeCategory}`);
+};
+
+export const ensureRepuestoCategoryFolder = async ({ parentId, categoryId }) => {
+  const bucket = getRepuestosBucket();
+  const safeCategory = sanitizeSegment(categoryId, "sin-categoria");
+
+  if (!parentId) {
+    await ensureFolderMarker(bucket, `catalogo/${safeCategory}`);
+    return;
+  }
+
+  const safeParent = sanitizeSegment(parentId, "sin-categoria");
+  await ensureFolderMarker(bucket, `catalogo/${safeParent}/${safeCategory}`);
+};
+
+export const getMotoCategoryFolderPrefixes = ({ id, parentId }) => {
+  const safeId = sanitizeSegment(id, "sin-categoria");
+  if (!parentId) return [`modelos/${safeId}`];
+  const safeParent = sanitizeSegment(parentId, "sin-categoria");
+  return [`modelos/${safeParent}/${safeId}`];
+};
+
+export const getRepuestoCategoryFolderPrefixes = ({ id, parentId }) => {
+  const safeId = sanitizeSegment(id, "sin-categoria");
+  if (!parentId) return [`catalogo/${safeId}`];
+  const safeParent = sanitizeSegment(parentId, "sin-categoria");
+  return [`catalogo/${safeParent}/${safeId}`];
+};
+
+export const listFolderFiles = async (bucketType, prefix) => {
+  const bucket = bucketType === "motos" ? getMotoBucket() : getRepuestosBucket();
+  return collectFilesRecursive(bucket, prefix);
+};
+
+export const deleteFolder = async (bucketType, prefix) => {
+  const bucket = bucketType === "motos" ? getMotoBucket() : getRepuestosBucket();
+  return removeFolderRecursive(bucket, prefix);
+};
+
+export const isRealFile = (path) => !path.endsWith("/.folder");

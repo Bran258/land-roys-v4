@@ -28,6 +28,15 @@ import {
   getCategoriasRepuestos,
   updateCategoriaRepuesto,
 } from "../../../services/CategoriasRepuestos.service";
+import {
+  deleteFolder,
+  ensureMotoCategoryFolder,
+  ensureRepuestoCategoryFolder,
+  getMotoCategoryFolderPrefixes,
+  getRepuestoCategoryFolderPrefixes,
+  isRealFile,
+  listFolderFiles,
+} from "../../../services/storageFolders.service";
 
 const initialForm = {
   nombre: "",
@@ -1064,8 +1073,12 @@ const Inventario = () => {
         Swal.fire("Actualizado", "Categoría actualizada correctamente", "success");
       } else {
         const created = await addCategoriaRepuesto(payload);
+        await ensureRepuestoCategoryFolder({
+          parentId: created.parent_id,
+          categoryId: created.id,
+        });
         setCategoriasRepuestos((prev) => [...prev, created].sort((a, b) => a.nombre.localeCompare(b.nombre)));
-        Swal.fire("Creado", "Categoría creada correctamente", "success");
+        Swal.fire("Creado", "Categoría creada correctamente y carpeta inicial generada", "success");
       }
       resetCategoriaForm();
     } catch (error) {
@@ -1101,8 +1114,12 @@ const Inventario = () => {
         Swal.fire("Actualizado", "Categoría actualizada correctamente", "success");
       } else {
         const created = await addCategoriaMoto(payload);
+        await ensureMotoCategoryFolder({
+          parentId: created.parent_id,
+          categoryId: created.id,
+        });
         setCategoriasMotos((prev) => [...prev, created].sort((a, b) => a.nombre.localeCompare(b.nombre)));
-        Swal.fire("Creado", "Categoría creada correctamente", "success");
+        Swal.fire("Creado", "Categoría creada correctamente y carpeta inicial generada", "success");
       }
       resetCategoriaMotoForm();
     } catch (error) {
@@ -1115,6 +1132,31 @@ const Inventario = () => {
 
   const handleDeleteCategoriaMoto = async (id) => {
     const childCategorias = categoriasMotos.filter((categoria) => categoria.parent_id === id);
+    const currentCategoria = categoriasMotos.find((categoria) => categoria.id === id);
+    const categoriasObjetivo = [
+      ...(currentCategoria ? [currentCategoria] : []),
+      ...childCategorias,
+    ];
+    const prefixes = categoriasObjetivo.flatMap((categoria) =>
+      getMotoCategoryFolderPrefixes({ id: categoria.id, parentId: categoria.parent_id })
+    );
+
+    const linkedFiles = [];
+    for (const prefix of prefixes) {
+      const files = await listFolderFiles("motos", prefix);
+      linkedFiles.push(...files.filter(isRealFile));
+    }
+
+    if (linkedFiles.length > 0) {
+      const resumen = linkedFiles.slice(0, 8).map((file) => `• ${file}`).join("\n");
+      Swal.fire(
+        "No se puede eliminar",
+        `Hay ${linkedFiles.length} archivo(s) en la carpeta de esta categoría/subcategorías. Elimina primero esos archivos:\n\n${resumen}${linkedFiles.length > 8 ? "\n• ..." : ""}`,
+        "warning"
+      );
+      return;
+    }
+
     const result = await Swal.fire({
       title: "¿Eliminar categoría?",
       text: childCategorias.length
@@ -1130,6 +1172,10 @@ const Inventario = () => {
     if (!result.isConfirmed) return;
 
     try {
+      for (const prefix of prefixes) {
+        await deleteFolder("motos", prefix);
+      }
+
       if (childCategorias.length > 0) {
         await Promise.all(childCategorias.map((child) => deleteCategoriaMoto(child.id)));
       }
@@ -1192,6 +1238,27 @@ const Inventario = () => {
       return;
     }
 
+    const categoriasObjetivo = categoriasRepuestos.filter((categoria) => categoryIdsToDelete.includes(categoria.id));
+    const prefixes = categoriasObjetivo.flatMap((categoria) =>
+      getRepuestoCategoryFolderPrefixes({ id: categoria.id, parentId: categoria.parent_id })
+    );
+
+    const linkedFiles = [];
+    for (const prefix of prefixes) {
+      const files = await listFolderFiles("repuestos", prefix);
+      linkedFiles.push(...files.filter(isRealFile));
+    }
+
+    if (linkedFiles.length > 0) {
+      const resumen = linkedFiles.slice(0, 8).map((file) => `• ${file}`).join("\n");
+      Swal.fire(
+        "No se puede eliminar",
+        `Hay ${linkedFiles.length} archivo(s) en la carpeta de esta categoría/subcategorías. Elimina primero esos archivos:\n\n${resumen}${linkedFiles.length > 8 ? "\n• ..." : ""}`,
+        "warning"
+      );
+      return;
+    }
+
     const result = await Swal.fire({
       title: "¿Eliminar categoría?",
       text: descendantIds.length
@@ -1207,6 +1274,10 @@ const Inventario = () => {
     if (!result.isConfirmed) return;
 
     try {
+      for (const prefix of prefixes) {
+        await deleteFolder("repuestos", prefix);
+      }
+
       if (descendantIds.length > 0) {
         await Promise.all(descendantIds.map((categoriaId) => deleteCategoriaRepuesto(categoriaId)));
       }
