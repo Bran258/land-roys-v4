@@ -2,6 +2,7 @@ import { supabase } from "../api/Supabase.provider";
 
 const getMotoBucket = () => import.meta.env.VITE_SUPABASE_MOTOS_BUCKET || "Modelos";
 const getRepuestosBucket = () => import.meta.env.VITE_SUPABASE_REPUESTOS_BUCKET || "Repuestos";
+const canManageCategoryFolders = () => import.meta.env.VITE_SUPABASE_MANAGE_CATEGORY_FOLDERS === "true";
 
 const sanitizeSegment = (value, fallback = "sin-valor") => {
   if (!value) return fallback;
@@ -57,29 +58,33 @@ const removeFolderRecursive = async (bucket, prefix) => {
 };
 
 export const ensureMotoCategoryFolder = async ({ parentId, categoryId }) => {
+  if (!canManageCategoryFolders()) return { skipped: true, reason: "disabled" };
   const bucket = getMotoBucket();
   const safeCategory = sanitizeSegment(categoryId, "sin-categoria");
 
   if (!parentId) {
     await ensureFolderMarker(bucket, `modelos/${safeCategory}`);
-    return;
+    return { skipped: false };
   }
 
   const safeParent = sanitizeSegment(parentId, "sin-categoria");
   await ensureFolderMarker(bucket, `modelos/${safeParent}/${safeCategory}`);
+  return { skipped: false };
 };
 
 export const ensureRepuestoCategoryFolder = async ({ parentId, categoryId }) => {
+  if (!canManageCategoryFolders()) return { skipped: true, reason: "disabled" };
   const bucket = getRepuestosBucket();
   const safeCategory = sanitizeSegment(categoryId, "sin-categoria");
 
   if (!parentId) {
     await ensureFolderMarker(bucket, `catalogo/${safeCategory}`);
-    return;
+    return { skipped: false };
   }
 
   const safeParent = sanitizeSegment(parentId, "sin-categoria");
   await ensureFolderMarker(bucket, `catalogo/${safeParent}/${safeCategory}`);
+  return { skipped: false };
 };
 
 export const getMotoCategoryFolderPrefixes = ({ id, parentId }) => {

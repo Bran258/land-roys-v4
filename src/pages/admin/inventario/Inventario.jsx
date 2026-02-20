@@ -170,6 +170,11 @@ const isBucketMissingError = (error) => {
   return message.includes("bucket not found") || error?.statusCode === "404";
 };
 
+const isStoragePermissionError = (error) => {
+  const message = (error?.message || "").toLowerCase();
+  return message.includes("row-level security") || error?.statusCode === "403";
+};
+
 const emptyGaleriaItem = { imagen_url: "", titulo: "", descripcion: "" };
 
 const Inventario = () => {
@@ -1085,11 +1090,15 @@ const Inventario = () => {
         setCategoriasRepuestos((prev) => [...prev, created].sort((a, b) => a.nombre.localeCompare(b.nombre)));
 
         try {
-          await ensureRepuestoCategoryFolder({
+          const folderResult = await ensureRepuestoCategoryFolder({
             parentId: created.parent_id,
             categoryId: created.id,
           });
-          Swal.fire("Creado", "Categoría creada correctamente y carpeta inicial generada", "success");
+          if (folderResult?.skipped) {
+            Swal.fire("Creado", "Categoría creada correctamente", "success");
+          } else {
+            Swal.fire("Creado", "Categoría creada correctamente y carpeta inicial generada", "success");
+          }
         } catch (folderError) {
           console.warn("No se pudo crear la carpeta de Storage para repuestos", folderError);
           const bucketName = getConfiguredBucketName("repuestos");
@@ -1097,6 +1106,8 @@ const Inventario = () => {
             "Creado con aviso",
             isBucketMissingError(folderError)
               ? `La categoría se creó, pero no se encontró el bucket "${bucketName}". Verifica VITE_SUPABASE_REPUESTOS_BUCKET.`
+              : isStoragePermissionError(folderError)
+                ? "La categoría se creó, pero tu política de Storage (RLS) no permite crear carpetas desde el cliente."
               : "La categoría se creó, pero no se pudo crear su carpeta en Storage.",
             "warning"
           );
@@ -1145,11 +1156,15 @@ const Inventario = () => {
         setCategoriasMotos((prev) => [...prev, created].sort((a, b) => a.nombre.localeCompare(b.nombre)));
 
         try {
-          await ensureMotoCategoryFolder({
+          const folderResult = await ensureMotoCategoryFolder({
             parentId: created.parent_id,
             categoryId: created.id,
           });
-          Swal.fire("Creado", "Categoría creada correctamente y carpeta inicial generada", "success");
+          if (folderResult?.skipped) {
+            Swal.fire("Creado", "Categoría creada correctamente", "success");
+          } else {
+            Swal.fire("Creado", "Categoría creada correctamente y carpeta inicial generada", "success");
+          }
         } catch (folderError) {
           console.warn("No se pudo crear la carpeta de Storage para motos", folderError);
           const bucketName = getConfiguredBucketName("motos");
@@ -1157,6 +1172,8 @@ const Inventario = () => {
             "Creado con aviso",
             isBucketMissingError(folderError)
               ? `La categoría se creó, pero no se encontró el bucket "${bucketName}". Verifica VITE_SUPABASE_MOTOS_BUCKET.`
+              : isStoragePermissionError(folderError)
+                ? "La categoría se creó, pero tu política de Storage (RLS) no permite crear carpetas desde el cliente."
               : "La categoría se creó, pero no se pudo crear su carpeta en Storage.",
             "warning"
           );
