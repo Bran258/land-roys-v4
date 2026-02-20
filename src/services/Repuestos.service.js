@@ -25,45 +25,14 @@ const pickRepuestoPayload = (repuesto = {}) => ({
   stock: repuesto.stock ?? 0,
 });
 
-const getRepuestosBucket = () => import.meta.env.VITE_SUPABASE_REPUESTOS_BUCKET || "Repuestos";
+const getRepuestosBucket = () => import.meta.env.VITE_SUPABASE_INVENTARIO_BUCKET || "Inventario";
 
-const sanitizeSegment = (value, fallback = "sin-valor") => {
-  if (!value) return fallback;
-  return String(value)
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-_]/g, "") || fallback;
-};
+const buildRepuestoMediaPath = ({ ext }) => `Repuestos/${Date.now()}-${crypto.randomUUID()}.${ext}`;
 
-const buildRepuestoMediaPath = ({
-  categoriaPadreId,
-  categoriaPadreNombre,
-  subcategoriaId,
-  subcategoriaNombre,
-  repuestoId,
-  repuestoSlug,
-  mediaType,
-  ext,
-}) => {
-  const safeParent = sanitizeSegment(categoriaPadreNombre || categoriaPadreId, "sin-categoria");
-  const safeSub = sanitizeSegment(subcategoriaNombre || subcategoriaId, "sin-subcategoria");
-  const safeItem = sanitizeSegment(repuestoSlug || repuestoId, crypto.randomUUID());
-  const folder = mediaType === "galeria" ? "galeria" : "principal";
-  return `${safeParent}/${safeSub}/${safeItem}/${folder}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
-};
-
-export const uploadRepuestoImage = async (file, context = {}) => {
+export const uploadRepuestoImage = async (file) => {
   const bucket = getRepuestosBucket();
   const ext = file.name.split(".").pop();
   const filePath = buildRepuestoMediaPath({
-    categoriaPadreId: context.categoriaPadreId,
-    categoriaPadreNombre: context.categoriaPadreNombre,
-    subcategoriaId: context.subcategoriaId,
-    subcategoriaNombre: context.subcategoriaNombre,
-    repuestoId: context.repuestoId,
-    repuestoSlug: context.repuestoSlug,
-    mediaType: context.mediaType || "principal",
     ext,
   });
 

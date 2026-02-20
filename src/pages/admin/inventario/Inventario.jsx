@@ -1150,7 +1150,7 @@ const Inventario = () => {
           Swal.fire(
             "Creado con aviso",
             isBucketMissingError(folderError)
-              ? `La categoría se creó, pero no se encontró el bucket "${bucketName}". Verifica VITE_SUPABASE_REPUESTOS_BUCKET.`
+              ? `La categoría se creó, pero no se encontró el bucket "${bucketName}". Verifica VITE_SUPABASE_INVENTARIO_BUCKET.`
               : isStoragePermissionError(folderError)
                 ? "La categoría se creó, pero tu política de Storage (RLS) no permite crear carpetas desde el cliente."
               : "La categoría se creó, pero no se pudo crear su carpeta en Storage.",
@@ -1216,7 +1216,7 @@ const Inventario = () => {
           Swal.fire(
             "Creado con aviso",
             isBucketMissingError(folderError)
-              ? `La categoría se creó, pero no se encontró el bucket "${bucketName}". Verifica VITE_SUPABASE_MOTOS_BUCKET.`
+              ? `La categoría se creó, pero no se encontró el bucket "${bucketName}". Verifica VITE_SUPABASE_INVENTARIO_BUCKET.`
               : isStoragePermissionError(folderError)
                 ? "La categoría se creó, pero tu política de Storage (RLS) no permite crear carpetas desde el cliente."
               : "La categoría se creó, pero no se pudo crear su carpeta en Storage.",

@@ -70,47 +70,14 @@ const pickMotoPayload = (moto = {}) => ({
 
 const pickSpecs = (moto = {}) => normalizeSpecs(moto);
 
-const getMotoBucket = () => import.meta.env.VITE_SUPABASE_MOTOS_BUCKET || "Modelos";
+const getMotoBucket = () => import.meta.env.VITE_SUPABASE_INVENTARIO_BUCKET || "Inventario";
 
-const sanitizeSegment = (value, fallback = "sin-valor") => {
-  if (!value) return fallback;
-  return String(value)
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-_]/g, "") || fallback;
-};
+const buildMotoMediaPath = ({ ext }) => `Modelos/${Date.now()}-${crypto.randomUUID()}.${ext}`;
 
-const buildMotoMediaPath = ({ categoriaId, categoriaNombre, subcategoriaId, subcategoriaNombre, motoId, motoSlug, mediaType, ext }) => {
-  const safeCategory = sanitizeSegment(categoriaNombre || categoriaId, "sin-categoria");
-  const safeSubcategory = sanitizeSegment(subcategoriaNombre || subcategoriaId, "sin-subcategoria");
-  const safeMoto = sanitizeSegment(motoSlug || motoId, crypto.randomUUID());
-  const fileName = `${Date.now()}-${crypto.randomUUID()}.${ext}`;
-
-  const mediaFolderByType = {
-    hero: "hero",
-    logo_modelo: "logos/modelo",
-    logo_marca: "logos/marca",
-    galeria_especificaciones: "galeria/especificaciones",
-    galeria_diferencial: "galeria/diferencial",
-    video_principal: "video/principal",
-  };
-
-  const mediaFolder = mediaFolderByType[mediaType] || "extras";
-  return `${safeCategory}/${safeSubcategory}/${safeMoto}/${mediaFolder}/${fileName}`;
-};
-
-export const uploadMotoVideo = async (file, context = {}) => {
+export const uploadMotoVideo = async (file) => {
   const bucket = getMotoBucket();
   const ext = file.name.split(".").pop();
   const filePath = buildMotoMediaPath({
-    categoriaId: context.categoriaId,
-    categoriaNombre: context.categoriaNombre,
-    subcategoriaId: context.subcategoriaId,
-    subcategoriaNombre: context.subcategoriaNombre,
-    motoId: context.motoId,
-    motoSlug: context.motoSlug,
-    mediaType: context.mediaType || "video_principal",
     ext,
   });
 
@@ -155,17 +122,10 @@ const executeWithFallback = async (requestFactory) => {
   return { data, error, payload };
 };
 
-export const uploadMotoImage = async (file, context = {}) => {
+export const uploadMotoImage = async (file) => {
   const bucket = getMotoBucket();
   const ext = file.name.split(".").pop();
   const filePath = buildMotoMediaPath({
-    categoriaId: context.categoriaId,
-    categoriaNombre: context.categoriaNombre,
-    subcategoriaId: context.subcategoriaId,
-    subcategoriaNombre: context.subcategoriaNombre,
-    motoId: context.motoId,
-    motoSlug: context.motoSlug,
-    mediaType: context.mediaType || "hero",
     ext,
   });
 
