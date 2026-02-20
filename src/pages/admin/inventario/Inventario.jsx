@@ -161,6 +161,14 @@ const normalizeGaleria = (value) => {
   return [];
 };
 
+const isDuplicateNameError = (error) =>
+  error?.code === "23505" || (error?.message || "").toLowerCase().includes("duplicate key value");
+
+const isBucketMissingError = (error) => {
+  const message = (error?.message || "").toLowerCase();
+  return message.includes("bucket not found") || error?.statusCode === "404";
+};
+
 const emptyGaleriaItem = { imagen_url: "", titulo: "", descripcion: "" };
 
 const Inventario = () => {
@@ -1073,17 +1081,35 @@ const Inventario = () => {
         Swal.fire("Actualizado", "Categoría actualizada correctamente", "success");
       } else {
         const created = await addCategoriaRepuesto(payload);
-        await ensureRepuestoCategoryFolder({
-          parentId: created.parent_id,
-          categoryId: created.id,
-        });
         setCategoriasRepuestos((prev) => [...prev, created].sort((a, b) => a.nombre.localeCompare(b.nombre)));
-        Swal.fire("Creado", "Categoría creada correctamente y carpeta inicial generada", "success");
+
+        try {
+          await ensureRepuestoCategoryFolder({
+            parentId: created.parent_id,
+            categoryId: created.id,
+          });
+          Swal.fire("Creado", "Categoría creada correctamente y carpeta inicial generada", "success");
+        } catch (folderError) {
+          console.warn("No se pudo crear la carpeta de Storage para repuestos", folderError);
+          Swal.fire(
+            "Creado con aviso",
+            isBucketMissingError(folderError)
+              ? "La categoría se creó, pero el bucket de repuestos no existe o no coincide con tu .env."
+              : "La categoría se creó, pero no se pudo crear su carpeta en Storage.",
+            "warning"
+          );
+        }
       }
       resetCategoriaForm();
     } catch (error) {
       console.error(error);
-      Swal.fire("Error", "No se pudo guardar la categoría", "error");
+      Swal.fire(
+        "Error",
+        isDuplicateNameError(error)
+          ? "Ya existe una categoría con ese nombre. Usa otro nombre para continuar."
+          : "No se pudo guardar la categoría",
+        "error"
+      );
     } finally {
       setSaving(false);
     }
@@ -1114,17 +1140,35 @@ const Inventario = () => {
         Swal.fire("Actualizado", "Categoría actualizada correctamente", "success");
       } else {
         const created = await addCategoriaMoto(payload);
-        await ensureMotoCategoryFolder({
-          parentId: created.parent_id,
-          categoryId: created.id,
-        });
         setCategoriasMotos((prev) => [...prev, created].sort((a, b) => a.nombre.localeCompare(b.nombre)));
-        Swal.fire("Creado", "Categoría creada correctamente y carpeta inicial generada", "success");
+
+        try {
+          await ensureMotoCategoryFolder({
+            parentId: created.parent_id,
+            categoryId: created.id,
+          });
+          Swal.fire("Creado", "Categoría creada correctamente y carpeta inicial generada", "success");
+        } catch (folderError) {
+          console.warn("No se pudo crear la carpeta de Storage para motos", folderError);
+          Swal.fire(
+            "Creado con aviso",
+            isBucketMissingError(folderError)
+              ? "La categoría se creó, pero el bucket de motos no existe o no coincide con tu .env."
+              : "La categoría se creó, pero no se pudo crear su carpeta en Storage.",
+            "warning"
+          );
+        }
       }
       resetCategoriaMotoForm();
     } catch (error) {
       console.error(error);
-      Swal.fire("Error", "No se pudo guardar la categoría", "error");
+      Swal.fire(
+        "Error",
+        isDuplicateNameError(error)
+          ? "Ya existe una categoría con ese nombre. Usa otro nombre para continuar."
+          : "No se pudo guardar la categoría",
+        "error"
+      );
     } finally {
       setSaving(false);
     }
