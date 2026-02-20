@@ -184,6 +184,11 @@ const isStoragePermissionError = (error) => {
   return message.includes("row-level security") || error?.statusCode === "403";
 };
 
+const isMotoStockConstraintError = (error) => {
+  const message = (error?.message || "").toLowerCase();
+  return error?.code === "23514" && message.includes("motos_stock_check");
+};
+
 const emptyGaleriaItem = { imagen_url: "", titulo: "", descripcion: "" };
 
 const Inventario = () => {
@@ -840,6 +845,9 @@ const Inventario = () => {
     const subcategoriaNombre = selectedSubcategoria?.nombre || selectedTipo?.nombre || "sin-subcategoria";
     const motoSlug = slugifySegment(`${form.nombre}-${form.modelo_codigo || "modelo"}`, slugifySegment(form.nombre, "modelo"));
 
+    const parsedPrice = Number(form.precio);
+    const parsedStock = Number(form.stock);
+
     const payload = {
       nombre: form.nombre.trim(),
       marca: form.marca.trim() || null,
@@ -853,8 +861,8 @@ const Inventario = () => {
       velocidades: form.velocidades ? Number(form.velocidades) : null,
       torque_max_nm: form.torque_max_nm ? Number(form.torque_max_nm) : null,
       motor_especificacion: form.motor_especificacion.trim() || null,
-      precio: Number(form.precio),
-      stock: Number(form.stock),
+      precio: parsedPrice,
+      stock: parsedStock,
       estado: form.estado,
       imagen_url: normalizeStorageUrl(form.imagen_url) || null,
       video_url: form.video_activo ? form.video_url.trim() || null : null,
@@ -871,8 +879,13 @@ const Inventario = () => {
         : [],
     };
 
-    if (Number.isNaN(payload.precio) || Number.isNaN(payload.stock)) {
-      Swal.fire("Validación", "Precio y stock deben ser números válidos", "warning");
+    if (Number.isNaN(payload.precio)) {
+      Swal.fire("Validación", "El precio debe ser un número válido", "warning");
+      return;
+    }
+
+    if (!Number.isInteger(payload.stock) || payload.stock < 1) {
+      Swal.fire("Validación", "El stock debe ser un número entero mayor o igual a 1", "warning");
       return;
     }
 
@@ -949,7 +962,13 @@ const Inventario = () => {
       resetForm();
     } catch (error) {
       console.error(error);
-      Swal.fire("Error", "No se pudo guardar el modelo", "error");
+      Swal.fire(
+        "Error",
+        isMotoStockConstraintError(error)
+          ? "No se pudo guardar el modelo: el stock debe ser mayor a 0 según la configuración de la base de datos."
+          : "No se pudo guardar el modelo",
+        "error"
+      );
     } finally {
       setSaving(false);
       setUploading(false);
