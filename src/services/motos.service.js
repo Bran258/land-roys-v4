@@ -81,10 +81,10 @@ const sanitizeSegment = (value, fallback = "sin-valor") => {
     .replace(/[^a-z0-9-_]/g, "") || fallback;
 };
 
-const buildMotoMediaPath = ({ categoriaId, subcategoriaId, motoId, mediaType, ext }) => {
-  const safeCategory = sanitizeSegment(categoriaId, "sin-categoria");
-  const safeSubcategory = sanitizeSegment(subcategoriaId, "sin-subcategoria");
-  const safeMoto = sanitizeSegment(motoId, crypto.randomUUID());
+const buildMotoMediaPath = ({ categoriaId, categoriaNombre, subcategoriaId, subcategoriaNombre, motoId, motoSlug, mediaType, ext }) => {
+  const safeCategory = sanitizeSegment(categoriaNombre || categoriaId, "sin-categoria");
+  const safeSubcategory = sanitizeSegment(subcategoriaNombre || subcategoriaId, "sin-subcategoria");
+  const safeMoto = sanitizeSegment(motoSlug || motoId, crypto.randomUUID());
   const fileName = `${Date.now()}-${crypto.randomUUID()}.${ext}`;
 
   const mediaFolderByType = {
@@ -97,7 +97,7 @@ const buildMotoMediaPath = ({ categoriaId, subcategoriaId, motoId, mediaType, ex
   };
 
   const mediaFolder = mediaFolderByType[mediaType] || "extras";
-  return `modelos/${safeCategory}/${safeSubcategory}/${safeMoto}/${mediaFolder}/${fileName}`;
+  return `${safeCategory}/${safeSubcategory}/${safeMoto}/${mediaFolder}/${fileName}`;
 };
 
 export const uploadMotoVideo = async (file, context = {}) => {
@@ -105,8 +105,11 @@ export const uploadMotoVideo = async (file, context = {}) => {
   const ext = file.name.split(".").pop();
   const filePath = buildMotoMediaPath({
     categoriaId: context.categoriaId,
+    categoriaNombre: context.categoriaNombre,
     subcategoriaId: context.subcategoriaId,
+    subcategoriaNombre: context.subcategoriaNombre,
     motoId: context.motoId,
+    motoSlug: context.motoSlug,
     mediaType: context.mediaType || "video_principal",
     ext,
   });
@@ -157,8 +160,11 @@ export const uploadMotoImage = async (file, context = {}) => {
   const ext = file.name.split(".").pop();
   const filePath = buildMotoMediaPath({
     categoriaId: context.categoriaId,
+    categoriaNombre: context.categoriaNombre,
     subcategoriaId: context.subcategoriaId,
+    subcategoriaNombre: context.subcategoriaNombre,
     motoId: context.motoId,
+    motoSlug: context.motoSlug,
     mediaType: context.mediaType || "hero",
     ext,
   });

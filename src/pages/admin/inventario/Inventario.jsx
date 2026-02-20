@@ -162,6 +162,15 @@ const normalizeGaleria = (value) => {
   return [];
 };
 
+const slugifySegment = (value, fallback = "sin-valor") => {
+  if (!value) return fallback;
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-_]/g, "") || fallback;
+};
+
 const isDuplicateNameError = (error) =>
   error?.code === "23505" || (error?.message || "").toLowerCase().includes("duplicate key value");
 
@@ -827,6 +836,9 @@ const Inventario = () => {
     }
 
     const selectedCategoriaId = selectedSubcategoria?.id || selectedTipo?.id || null;
+    const tipoNombre = selectedTipo?.nombre || form.categoria || "sin-tipo";
+    const subcategoriaNombre = selectedSubcategoria?.nombre || selectedTipo?.nombre || "sin-subcategoria";
+    const motoSlug = slugifySegment(`${form.nombre}-${form.modelo_codigo || "modelo"}`, slugifySegment(form.nombre, "modelo"));
 
     const payload = {
       nombre: form.nombre.trim(),
@@ -872,8 +884,11 @@ const Inventario = () => {
         setUploading(true);
         const publicUrl = await uploadMotoImage(imageFile, {
           categoriaId: motoTipoId,
+          categoriaNombre: tipoNombre,
           subcategoriaId: selectedCategoriaId,
+          subcategoriaNombre,
           motoId: motoIdForMedia,
+          motoSlug,
           mediaType: "hero",
         });
         payload.imagen_url = publicUrl;
@@ -883,8 +898,11 @@ const Inventario = () => {
         setUploading(true);
         const publicUrl = await uploadMotoImage(logoFile, {
           categoriaId: motoTipoId,
+          categoriaNombre: tipoNombre,
           subcategoriaId: selectedCategoriaId,
+          subcategoriaNombre,
           motoId: motoIdForMedia,
+          motoSlug,
           mediaType: "logo_modelo",
         });
         payload.logo_url = publicUrl;
@@ -894,8 +912,11 @@ const Inventario = () => {
         setUploading(true);
         const publicUrl = await uploadMotoImage(brandLogoFile, {
           categoriaId: motoTipoId,
+          categoriaNombre: tipoNombre,
           subcategoriaId: selectedCategoriaId,
+          subcategoriaNombre,
           motoId: motoIdForMedia,
+          motoSlug,
           mediaType: "logo_marca",
         });
         payload.brand_logo_url = publicUrl;
@@ -905,8 +926,11 @@ const Inventario = () => {
         setUploadingVideo(true);
         const publicUrl = await uploadMotoVideo(form.video_file, {
           categoriaId: motoTipoId,
+          categoriaNombre: tipoNombre,
           subcategoriaId: selectedCategoriaId,
+          subcategoriaNombre,
           motoId: motoIdForMedia,
+          motoSlug,
           mediaType: "video_principal",
         });
         payload.video_url = publicUrl;
@@ -955,6 +979,9 @@ const Inventario = () => {
       ? categoriasRepuestos.find((categoria) => categoria.id === repuestoTipoId)
       : null;
     const selectedCategoria = selectedSubcategoria || selectedTipo;
+    const tipoNombre = selectedTipo?.nombre || selectedCategoria?.nombre || "sin-tipo";
+    const subcategoriaNombre = selectedSubcategoria?.nombre || selectedTipo?.nombre || "sin-subcategoria";
+    const repuestoSlug = slugifySegment(repuestoForm.nombre, "repuesto");
 
     if (!selectedCategoria) {
       Swal.fire("Validación", "Selecciona una categoría válida", "warning");
@@ -981,7 +1008,15 @@ const Inventario = () => {
     try {
       if (repuestoImageFile) {
         setUploading(true);
-        const publicUrl = await uploadRepuestoImage(repuestoImageFile);
+        const publicUrl = await uploadRepuestoImage(repuestoImageFile, {
+          categoriaPadreId: selectedTipo?.id || selectedCategoria?.id,
+          categoriaPadreNombre: tipoNombre,
+          subcategoriaId: selectedSubcategoria?.id || selectedTipo?.id,
+          subcategoriaNombre,
+          repuestoId: repuestoEditingId,
+          repuestoSlug,
+          mediaType: "principal",
+        });
         payload.imagen_url = publicUrl;
       }
 

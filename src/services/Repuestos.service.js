@@ -36,12 +36,21 @@ const sanitizeSegment = (value, fallback = "sin-valor") => {
     .replace(/[^a-z0-9-_]/g, "") || fallback;
 };
 
-const buildRepuestoMediaPath = ({ categoriaPadreId, subcategoriaId, repuestoId, mediaType, ext }) => {
-  const safeParent = sanitizeSegment(categoriaPadreId, "sin-categoria");
-  const safeSub = sanitizeSegment(subcategoriaId, "sin-subcategoria");
-  const safeItem = sanitizeSegment(repuestoId, crypto.randomUUID());
+const buildRepuestoMediaPath = ({
+  categoriaPadreId,
+  categoriaPadreNombre,
+  subcategoriaId,
+  subcategoriaNombre,
+  repuestoId,
+  repuestoSlug,
+  mediaType,
+  ext,
+}) => {
+  const safeParent = sanitizeSegment(categoriaPadreNombre || categoriaPadreId, "sin-categoria");
+  const safeSub = sanitizeSegment(subcategoriaNombre || subcategoriaId, "sin-subcategoria");
+  const safeItem = sanitizeSegment(repuestoSlug || repuestoId, crypto.randomUUID());
   const folder = mediaType === "galeria" ? "galeria" : "principal";
-  return `catalogo/${safeParent}/${safeSub}/${safeItem}/${folder}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+  return `${safeParent}/${safeSub}/${safeItem}/${folder}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
 };
 
 export const uploadRepuestoImage = async (file, context = {}) => {
@@ -49,8 +58,11 @@ export const uploadRepuestoImage = async (file, context = {}) => {
   const ext = file.name.split(".").pop();
   const filePath = buildRepuestoMediaPath({
     categoriaPadreId: context.categoriaPadreId,
+    categoriaPadreNombre: context.categoriaPadreNombre,
     subcategoriaId: context.subcategoriaId,
+    subcategoriaNombre: context.subcategoriaNombre,
     repuestoId: context.repuestoId,
+    repuestoSlug: context.repuestoSlug,
     mediaType: context.mediaType || "principal",
     ext,
   });
