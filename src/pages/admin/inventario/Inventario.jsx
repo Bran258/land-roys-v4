@@ -866,14 +866,7 @@ const Inventario = () => {
 
     setSaving(true);
     try {
-      const hasLocalMedia = Boolean(imageFile || logoFile || brandLogoFile || (form.video_activo && form.video_file));
-      let motoIdForMedia = editingId;
-      let createdMoto = null;
-
-      if (!editingId && hasLocalMedia) {
-        createdMoto = await addMoto(payload);
-        motoIdForMedia = createdMoto.id;
-      }
+      const motoIdForMedia = editingId || crypto.randomUUID();
 
       if (imageFile) {
         setUploading(true);
@@ -925,9 +918,7 @@ const Inventario = () => {
         setMotos((prev) => prev.map((m) => (m.id === editingId ? updated : m)));
         Swal.fire("Actualizado", "Modelo actualizado correctamente", "success");
       } else {
-        const created = createdMoto
-          ? await updateMoto(createdMoto.id, payload)
-          : await addMoto(payload);
+        const created = await addMoto(payload);
         setMotos((prev) => [created, ...prev]);
         Swal.fire("Creado", "Modelo agregado al inventario", "success");
       }
