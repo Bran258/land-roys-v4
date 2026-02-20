@@ -70,7 +70,7 @@ const pickMotoPayload = (moto = {}) => ({
 
 const pickSpecs = (moto = {}) => normalizeSpecs(moto);
 
-const getMotoBucket = () => import.meta.env.VITE_SUPABASE_MOTOS_BUCKET || "motos";
+const getMotoBucket = () => import.meta.env.VITE_SUPABASE_MOTOS_BUCKET || "Modelos";
 
 const sanitizeSegment = (value, fallback = "sin-valor") => {
   if (!value) return fallback;

@@ -25,7 +25,7 @@ const pickRepuestoPayload = (repuesto = {}) => ({
   stock: repuesto.stock ?? 0,
 });
 
-const getRepuestosBucket = () => import.meta.env.VITE_SUPABASE_REPUESTOS_BUCKET || "repuestos";
+const getRepuestosBucket = () => import.meta.env.VITE_SUPABASE_REPUESTOS_BUCKET || "Repuestos";
 
 const sanitizeSegment = (value, fallback = "sin-valor") => {
   if (!value) return fallback;

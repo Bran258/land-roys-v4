@@ -34,6 +34,7 @@ import {
   ensureRepuestoCategoryFolder,
   getMotoCategoryFolderPrefixes,
   getRepuestoCategoryFolderPrefixes,
+  getConfiguredBucketName,
   isRealFile,
   listFolderFiles,
 } from "../../../services/storageFolders.service";
@@ -1091,10 +1092,11 @@ const Inventario = () => {
           Swal.fire("Creado", "Categoría creada correctamente y carpeta inicial generada", "success");
         } catch (folderError) {
           console.warn("No se pudo crear la carpeta de Storage para repuestos", folderError);
+          const bucketName = getConfiguredBucketName("repuestos");
           Swal.fire(
             "Creado con aviso",
             isBucketMissingError(folderError)
-              ? "La categoría se creó, pero el bucket de repuestos no existe o no coincide con tu .env."
+              ? `La categoría se creó, pero no se encontró el bucket "${bucketName}". Verifica VITE_SUPABASE_REPUESTOS_BUCKET.`
               : "La categoría se creó, pero no se pudo crear su carpeta en Storage.",
             "warning"
           );
@@ -1150,10 +1152,11 @@ const Inventario = () => {
           Swal.fire("Creado", "Categoría creada correctamente y carpeta inicial generada", "success");
         } catch (folderError) {
           console.warn("No se pudo crear la carpeta de Storage para motos", folderError);
+          const bucketName = getConfiguredBucketName("motos");
           Swal.fire(
             "Creado con aviso",
             isBucketMissingError(folderError)
-              ? "La categoría se creó, pero el bucket de motos no existe o no coincide con tu .env."
+              ? `La categoría se creó, pero no se encontró el bucket "${bucketName}". Verifica VITE_SUPABASE_MOTOS_BUCKET.`
               : "La categoría se creó, pero no se pudo crear su carpeta en Storage.",
             "warning"
           );

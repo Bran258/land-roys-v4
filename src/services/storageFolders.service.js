@@ -1,7 +1,7 @@
 import { supabase } from "../api/Supabase.provider";
 
-const getMotoBucket = () => import.meta.env.VITE_SUPABASE_MOTOS_BUCKET || "motos";
-const getRepuestosBucket = () => import.meta.env.VITE_SUPABASE_REPUESTOS_BUCKET || "repuestos";
+const getMotoBucket = () => import.meta.env.VITE_SUPABASE_MOTOS_BUCKET || "Modelos";
+const getRepuestosBucket = () => import.meta.env.VITE_SUPABASE_REPUESTOS_BUCKET || "Repuestos";
 
 const sanitizeSegment = (value, fallback = "sin-valor") => {
   if (!value) return fallback;
@@ -107,3 +107,6 @@ export const deleteFolder = async (bucketType, prefix) => {
 };
 
 export const isRealFile = (path) => !path.endsWith("/.folder");
+
+export const getConfiguredBucketName = (bucketType) =>
+  bucketType === "motos" ? getMotoBucket() : getRepuestosBucket();
