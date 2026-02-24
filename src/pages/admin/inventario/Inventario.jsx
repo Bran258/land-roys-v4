@@ -202,7 +202,13 @@ const getMotoSaveErrorMessage = (error) => {
 
   if (!details) return "No se pudo guardar el modelo. Revisa los campos obligatorios e intenta nuevamente.";
 
-  if (details.toLowerCase().includes("400")) {
+  const normalized = details.toLowerCase();
+
+  if (error?.code === "42703" && normalized.includes("updated_at")) {
+    return "No se pudo guardar porque la base de datos espera el campo updated_at. Aplica la migración de compatibilidad (updated_at) y vuelve a intentar.";
+  }
+
+  if (normalized.includes("400")) {
     return `No se pudo guardar el modelo por un dato inválido. Detalle: ${details}`;
   }
 
@@ -495,11 +501,6 @@ const Inventario = () => {
 
       if (!isValidUrl(trimmed)) {
         setFichaTecnicaUrlError("La URL debe empezar con http:// o https://");
-        return;
-      }
-
-      if (!trimmed.toLowerCase().includes(".pdf")) {
-        setFichaTecnicaUrlError("La URL debe apuntar a un archivo PDF.");
         return;
       }
 
@@ -2119,11 +2120,11 @@ const Inventario = () => {
                   name="ficha_tecnica_url"
                   value={form.ficha_tecnica_url}
                   onChange={handleChange}
-                  placeholder="https://.../ficha-tecnica.pdf"
+                  placeholder="https://.../ficha-tecnica"
                   className="w-full bg-transparent outline-none"
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">Opcional: URL pública del PDF de especificaciones.</p>
+              <p className="text-xs text-gray-500 mt-1">Opcional: URL pública de la ficha técnica (idealmente PDF).</p>
               {fichaTecnicaUrlError && <p className="text-xs text-red-500 mt-1">{fichaTecnicaUrlError}</p>}
             </div>
 
