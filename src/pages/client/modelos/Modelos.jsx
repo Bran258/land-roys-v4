@@ -245,7 +245,7 @@ const Modelos = () => {
                         href={resolveFichaTecnicaUrl(moto)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-bold text-blue-700 hover:text-blue-900 underline"
+                        className="ficha-tecnica-btn text-xs"
                       >
                         Ver ficha técnica (PDF)
                       </a>

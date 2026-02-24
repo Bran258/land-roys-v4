@@ -312,7 +312,7 @@ const ModeloDetalle = () => {
                     href={fichaTecnicaUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm font-bold text-blue-700 hover:text-blue-900 underline"
+                    className="ficha-tecnica-btn text-sm"
                   >
                     Ver ficha técnica (PDF)
                   </a>
@@ -360,7 +360,7 @@ const ModeloDetalle = () => {
                     href={fichaTecnicaUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm font-bold text-blue-700 hover:text-blue-900 underline"
+                    className="ficha-tecnica-btn text-sm"
                   >
                     Ver ficha técnica (PDF)
                   </a>

@@ -253,6 +253,7 @@ const Inventario = () => {
   const [imageUrlError, setImageUrlError] = useState("");
   const [logoUrlError, setLogoUrlError] = useState("");
   const [brandLogoUrlError, setBrandLogoUrlError] = useState("");
+  const [fichaTecnicaUrlError, setFichaTecnicaUrlError] = useState("");
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState("");
   const [brandLogoFile, setBrandLogoFile] = useState(null);
@@ -484,6 +485,26 @@ const Inventario = () => {
 
       setBrandLogoUrlError("");
     }
+
+    if (name === "ficha_tecnica_url") {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        setFichaTecnicaUrlError("");
+        return;
+      }
+
+      if (!isValidUrl(trimmed)) {
+        setFichaTecnicaUrlError("La URL debe empezar con http:// o https://");
+        return;
+      }
+
+      if (!trimmed.toLowerCase().includes(".pdf")) {
+        setFichaTecnicaUrlError("La URL debe apuntar a un archivo PDF.");
+        return;
+      }
+
+      setFichaTecnicaUrlError("");
+    }
   };
 
   const handleRepuestoChange = (e) => {
@@ -573,6 +594,7 @@ const Inventario = () => {
     setLogoPreview("");
     setBrandLogoFile(null);
     setBrandLogoPreview("");
+    setFichaTecnicaUrlError("");
     setGaleriaItem(emptyGaleriaItem);
   };
 
@@ -609,6 +631,7 @@ const Inventario = () => {
     setLogoPreview("");
     setBrandLogoFile(null);
     setBrandLogoPreview("");
+    setFichaTecnicaUrlError("");
     setGaleriaItem(emptyGaleriaItem);
   };
 
@@ -688,6 +711,7 @@ const Inventario = () => {
     setLogoPreview("");
     setBrandLogoFile(null);
     setBrandLogoPreview("");
+    setFichaTecnicaUrlError("");
     setGaleriaItem(emptyGaleriaItem);
     setModalOpen(true);
   };
@@ -878,8 +902,8 @@ const Inventario = () => {
       return;
     }
 
-    if (logoUrlError || brandLogoUrlError) {
-      Swal.fire("Validación", "Revisa las URLs de logos antes de guardar", "warning");
+    if (logoUrlError || brandLogoUrlError || fichaTecnicaUrlError) {
+      Swal.fire("Validación", "Revisa las URLs de logos y de ficha técnica antes de guardar", "warning");
       return;
     }
 
@@ -2100,6 +2124,7 @@ const Inventario = () => {
                 />
               </div>
               <p className="text-xs text-gray-500 mt-1">Opcional: URL pública del PDF de especificaciones.</p>
+              {fichaTecnicaUrlError && <p className="text-xs text-red-500 mt-1">{fichaTecnicaUrlError}</p>}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
