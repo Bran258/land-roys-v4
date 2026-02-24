@@ -58,6 +58,7 @@ const initialForm = {
   imagen_url: "",
   logo_url: "",
   brand_logo_url: "",
+  ficha_tecnica_url: "",
   video_url: "",
   video_activo: false,
   video_file: null,
@@ -187,6 +188,25 @@ const isStoragePermissionError = (error) => {
 const isMotoStockConstraintError = (error) => {
   const message = (error?.message || "").toLowerCase();
   return error?.code === "23514" && message.includes("motos_stock_check");
+};
+
+const getMotoSaveErrorMessage = (error) => {
+  if (isMotoStockConstraintError(error)) {
+    return "No se pudo guardar el modelo: el stock debe ser mayor a 0 según la configuración de la base de datos.";
+  }
+
+  const details = [error?.message, error?.details, error?.hint]
+    .filter(Boolean)
+    .map((item) => String(item).trim())
+    .join(" | ");
+
+  if (!details) return "No se pudo guardar el modelo. Revisa los campos obligatorios e intenta nuevamente.";
+
+  if (details.toLowerCase().includes("400")) {
+    return `No se pudo guardar el modelo por un dato inválido. Detalle: ${details}`;
+  }
+
+  return `No se pudo guardar el modelo. Detalle: ${details}`;
 };
 
 const emptyGaleriaItem = { imagen_url: "", titulo: "", descripcion: "" };
@@ -631,6 +651,7 @@ const Inventario = () => {
       imagen_url: moto.imagen_url || "",
       logo_url: moto.logo_url || "",
       brand_logo_url: moto.brand_logo_url || "",
+      ficha_tecnica_url: moto.ficha_tecnica_url || "",
       video_url: moto.video_url || "",
       video_activo: Boolean(moto.video_url),
       galeria_activa: normalizeGaleria(moto.galeria_destacada).length > 0,
@@ -830,6 +851,11 @@ const Inventario = () => {
       return;
     }
 
+    if (!imageFile && !form.imagen_url.trim()) {
+      Swal.fire("Imagen faltante", "Falta la imagen principal de la moto. Sube una imagen o pega una URL válida antes de guardar.", "warning");
+      return;
+    }
+
     if (logoUrlError || brandLogoUrlError) {
       Swal.fire("Validación", "Revisa las URLs de logos antes de guardar", "warning");
       return;
@@ -868,6 +894,7 @@ const Inventario = () => {
       video_url: form.video_activo ? form.video_url.trim() || null : null,
       logo_url: normalizeStorageUrl(form.logo_url) || null,
       brand_logo_url: normalizeStorageUrl(form.brand_logo_url) || null,
+      ficha_tecnica_url: normalizeStorageUrl(form.ficha_tecnica_url) || null,
       galeria_destacada: form.galeria_activa
         ? form.galeria_destacada
         .filter((item) => item.imagen_url && isValidUrl(item.imagen_url))
@@ -964,9 +991,7 @@ const Inventario = () => {
       console.error(error);
       Swal.fire(
         "Error",
-        isMotoStockConstraintError(error)
-          ? "No se pudo guardar el modelo: el stock debe ser mayor a 0 según la configuración de la base de datos."
-          : "No se pudo guardar el modelo",
+        getMotoSaveErrorMessage(error),
         "error"
       );
     } finally {
@@ -2038,6 +2063,21 @@ const Inventario = () => {
                   Limpiar imagen
                 </button>
               )}
+            </div>
+
+            <div>
+              <label className="text-sm font-semibold text-gray-700">Ficha técnica (PDF)</label>
+              <div className="mt-2 flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                <Link2 size={16} className="text-gray-400" />
+                <input
+                  name="ficha_tecnica_url"
+                  value={form.ficha_tecnica_url}
+                  onChange={handleChange}
+                  placeholder="https://.../ficha-tecnica.pdf"
+                  className="w-full bg-transparent outline-none"
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Opcional: URL pública del PDF de especificaciones.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

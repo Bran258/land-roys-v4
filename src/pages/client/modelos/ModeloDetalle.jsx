@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { BatteryFull, ChevronLeft, ChevronRight, Fuel, Gauge, Wrench, Zap } from "lucide-react";
 import Swal from "sweetalert2";
 import { getMotoById } from "../../../services/motos.service";
+import { resolveFichaTecnicaUrl } from "../../../util/fichaTecnica";
 import { createSolicitud } from "../../../services/Solicitudes.service";
 
 const currency = new Intl.NumberFormat("en-US", {
@@ -221,6 +222,7 @@ const ModeloDetalle = () => {
   const brandLogo = moto.brand_logo_url || "/vite.svg";
 
   const hasVideo = Boolean(moto.video_url);
+  const fichaTecnicaUrl = resolveFichaTecnicaUrl(moto);
   const heroAnimation = heroVisible
     ? "opacity-100 translate-x-0 blur-0"
     : "opacity-0 -translate-x-24 blur-md";
@@ -305,6 +307,16 @@ const ModeloDetalle = () => {
               <div className="flex flex-col items-center lg:items-start gap-2">
                 <img src={brandLogo} alt="Logo empresa" className="h-16 w-auto object-contain" />
                 <p className="text-4xl font-black text-yellow-500">{currency.format(Number(moto.precio || 0))}</p>
+                {fichaTecnicaUrl && (
+                  <a
+                    href={fichaTecnicaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-bold text-blue-700 hover:text-blue-900 underline"
+                  >
+                    Ver ficha técnica (PDF)
+                  </a>
+                )}
               </div>
             </div>
           </section>
@@ -343,6 +355,16 @@ const ModeloDetalle = () => {
               <div className="flex flex-col items-center lg:items-start gap-2">
                 <img src={brandLogo} alt="Logo empresa" className="h-14 w-auto object-contain" />
                 <p className="text-3xl font-black text-yellow-500">{currency.format(Number(moto.precio || 0))}</p>
+                {fichaTecnicaUrl && (
+                  <a
+                    href={fichaTecnicaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-bold text-blue-700 hover:text-blue-900 underline"
+                  >
+                    Ver ficha técnica (PDF)
+                  </a>
+                )}
               </div>
             </div>
           </section>

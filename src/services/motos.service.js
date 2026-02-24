@@ -18,13 +18,16 @@ const normalizeMoto = (moto = {}) => ({
   id: moto.id,
   nombre: moto.nombre ?? "",
   descripcion: moto.descripcion ?? null,
-  categoria: moto.categoria ?? null,
+  categoria: moto.categoria ?? moto.categorias_motos?.nombre ?? null,
+  categoria_id: moto.categoria_id ?? moto.categorias_motos?.id ?? null,
+  categoria_parent_id: moto.categorias_motos?.parent_id ?? null,
   precio: moto.precio ?? 0,
   stock: moto.stock ?? 0,
   imagen_url: moto.imagen_url ?? null,
   video_url: moto.video_url ?? null,
   logo_url: moto.logo_url ?? null,
   brand_logo_url: moto.brand_logo_url ?? null,
+  ficha_tecnica_url: moto.ficha_tecnica_url?.trim() || null,
   marca: moto.marca ?? null,
   modelo_codigo: moto.modelo_codigo ?? null,
   estado: moto.estado || "disponible",
@@ -56,12 +59,14 @@ const pickMotoPayload = (moto = {}) => ({
   nombre: moto.nombre?.trim() || "",
   descripcion: moto.descripcion?.trim() || null,
   categoria: moto.categoria?.trim() || null,
+  categoria_id: moto.categoria_id || null,
   precio: moto.precio ?? 0,
   stock: moto.stock ?? 0,
   imagen_url: moto.imagen_url ?? null,
   video_url: moto.video_url ?? null,
   logo_url: moto.logo_url ?? null,
   brand_logo_url: moto.brand_logo_url ?? null,
+  ficha_tecnica_url: moto.ficha_tecnica_url?.trim() || null,
   marca: moto.marca || null,
   modelo_codigo: moto.modelo_codigo || null,
   estado: moto.estado || "disponible",
@@ -142,7 +147,7 @@ export const uploadMotoImage = async (file) => {
 export const getMotos = async () => {
   const { data, error } = await supabase
     .from("motos")
-    .select("*, motos_specs(*)")
+     .select("*, categorias_motos ( id, nombre, parent_id ), motos_specs(*)")
     .order("creado_en", { ascending: false });
 
   if (error) throw error;
@@ -159,7 +164,7 @@ export const getMotos = async () => {
 export const getMotoById = async (id) => {
   const { data, error } = await supabase
     .from("motos")
-    .select("*, motos_specs(*)")
+     .select("*, categorias_motos ( id, nombre, parent_id ), motos_specs(*)")
     .eq("id", id)
     .single();
 
