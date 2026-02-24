@@ -236,9 +236,24 @@ export const updateMoto = async (id, moto) => {
 };
 
 export const deleteMoto = async (id) => {
+  // 1) Liberar relaciones opcionales para evitar conflictos de FK
+  const { error: ofertasError } = await supabase
+    .from("ofertas")
+    .update({ moto_id: null })
+    .eq("moto_id", id);
+  if (ofertasError) throw ofertasError;
+
+  const { error: mediaError } = await supabase
+    .from("media_assets")
+    .delete()
+    .eq("moto_id", id);
+  if (mediaError && mediaError.code !== "PGRST204") throw mediaError;
+
+  // 2) Eliminar specs 1:1
   const { error: specsError } = await supabase.from("motos_specs").delete().eq("id", id);
   if (specsError) throw specsError;
 
+  // 3) Eliminar moto principal
   const { error } = await supabase.from("motos").delete().eq("id", id);
   if (error) throw error;
 };

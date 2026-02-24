@@ -209,6 +209,28 @@ const getMotoSaveErrorMessage = (error) => {
   return `No se pudo guardar el modelo. Detalle: ${details}`;
 };
 
+const getMotoDeleteErrorMessage = (error) => {
+  const details = [error?.message, error?.details, error?.hint]
+    .filter(Boolean)
+    .map((item) => String(item).trim())
+    .join(" | ");
+
+  if (!details) {
+    return "No se pudo eliminar el modelo. Verifica permisos o relaciones activas.";
+  }
+
+  const lower = details.toLowerCase();
+  if (error?.code === "23503" || lower.includes("foreign key") || lower.includes("violates")) {
+    return "No se pudo eliminar porque el modelo está relacionado con otros registros (por ejemplo ofertas o media). Se intentó liberar dependencias, pero aún hay una relación pendiente.";
+  }
+
+  if (error?.status === 409 || lower.includes("409")) {
+    return `Conflicto al eliminar (409). Detalle: ${details}`;
+  }
+
+  return `No se pudo eliminar el modelo. Detalle: ${details}`;
+};
+
 const emptyGaleriaItem = { imagen_url: "", titulo: "", descripcion: "" };
 
 const Inventario = () => {
@@ -1103,7 +1125,7 @@ const Inventario = () => {
       if (editingId === id) resetForm();
     } catch (error) {
       console.error(error);
-      Swal.fire("Error", "No se pudo eliminar el modelo", "error");
+      Swal.fire("Error", getMotoDeleteErrorMessage(error), "error");
     }
   };
 
