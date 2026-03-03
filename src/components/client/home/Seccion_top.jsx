@@ -1,60 +1,35 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Star, ArrowUpRight, Award } from "lucide-react";
-import { getRankingHomePublic } from "../../../services/rankingHome.service";
 import "./Seccion_top.css";
 
-const Seccion_top = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+const Seccion_top = ({ rankingData }) => {
+  if (!rankingData || rankingData.length === 0) return null;
 
-  useEffect(() => {
-    const fetchRanking = async () => {
-      setLoading(true);
-      try {
-        const data = await getRankingHomePublic();
+  // Mapear datos de la API a la estructura que usamos en el componente
+  const mapped = rankingData.map((item) => ({
+    id: item.id,
+    rank: item.rank || "-",
+    tag: item.tag || "",
+    name: item.name || "Sin nombre",
+    desc: item.description || "",
+    quote: item.rank === "#1" ? item.description : null,
+    price: item.price || "-",
+    image: item.image_url || "",
+    btnPrimary: item.btn_primary_url || "#",
+    isMain: item.rank === "#1",
+    stats: item.rank === "#1" ? "DESTACADO DE LA SEMANA" : null,
+  }));
 
-        if (!data || data.length === 0) {
-          setProducts([]);
-          return;
-        }
+  // Reordenar: colocar el producto principal (#1) en el centro
+  const principal = mapped.find((p) => p.isMain);
+  const secundarios = mapped.filter((p) => !p.isMain);
+  const products = [
+    secundarios[0] || null,
+    principal,
+    secundarios[1] || null,
+  ].filter(Boolean);
 
-        // Mapear datos de la API a la estructura que usamos en el componente
-        const mapped = data.map((item) => ({
-          id: item.id,
-          rank: item.rank || "-",
-          tag: item.tag || "",
-          name: item.name || "Sin nombre",
-          desc: item.description || "",
-          quote: item.rank === "#1" ? item.description : null,
-          price: item.price || "-",
-          image: item.image_url || "",
-          btnPrimary: item.btn_primary_url || "#",
-          isMain: item.rank === "#1",
-          stats: item.rank === "#1" ? "DESTACADO DE LA SEMANA" : null,
-        }));
-
-        // Reordenar: colocar el producto principal (#1) en el centro
-        const principal = mapped.find((p) => p.isMain);
-        const secundarios = mapped.filter((p) => !p.isMain);
-        const ordered = [
-          secundarios[0] || null,
-          principal,
-          secundarios[1] || null,
-        ].filter(Boolean);
-
-        setProducts(ordered);
-      } catch (error) {
-        console.error("Error cargando ranking público:", error);
-        setProducts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRanking();
-  }, []);
-
-  if (loading || products.length === 0) return null;
+  if (products.length === 0) return null;
 
   return (
     <section className="py-20 bg-white">
