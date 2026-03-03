@@ -278,6 +278,10 @@ const Inventario = () => {
   const [repuestoTipoId, setRepuestoTipoId] = useState("");
   const [repuestoSubcategoriaId, setRepuestoSubcategoriaId] = useState("");
   const [categoriasMotos, setCategoriasMotos] = useState([]);
+  const [categoriasMotosLoaded, setCategoriasMotosLoaded] = useState(false);
+  const [categoriasRepuestosLoaded, setCategoriasRepuestosLoaded] = useState(false);
+  const [motosLoaded, setMotosLoaded] = useState(false);
+  const [repuestosLoaded, setRepuestosLoaded] = useState(false);
   const [categoriaMotoForm, setCategoriaMotoForm] = useState(initialCategoriaMotoForm);
   const [categoriaMotoEditingId, setCategoriaMotoEditingId] = useState(null);
   const [isCreatingMotoType, setIsCreatingMotoType] = useState(false);
@@ -288,6 +292,7 @@ const Inventario = () => {
     try {
       const data = await getMotos();
       setMotos(data);
+      setMotosLoaded(true);
     } catch (error) {
       console.error(error);
       Swal.fire("Error", "No se pudo cargar el inventario", "error");
@@ -301,6 +306,7 @@ const Inventario = () => {
     try {
       const data = await getRepuestos();
       setRepuestos(data);
+      setRepuestosLoaded(true);
     } catch (error) {
       console.error(error);
       Swal.fire("Error", "No se pudo cargar los repuestos", "error");
@@ -313,6 +319,7 @@ const Inventario = () => {
     try {
       const data = await getCategoriasRepuestos();
       setCategoriasRepuestos(data);
+      setCategoriasRepuestosLoaded(true);
     } catch (error) {
       console.error(error);
       Swal.fire("Error", "No se pudo cargar las categorías de repuestos", "error");
@@ -323,6 +330,7 @@ const Inventario = () => {
     try {
       const data = await getCategoriasMotos();
       setCategoriasMotos(data);
+      setCategoriasMotosLoaded(true);
     } catch (error) {
       console.error(error);
       Swal.fire("Error", "No se pudo cargar las categorías de motos", "error");
@@ -331,10 +339,20 @@ const Inventario = () => {
 
   useEffect(() => {
     fetchMotos();
-    fetchRepuestos();
-    fetchCategoriasRepuestos();
     fetchCategoriasMotos();
   }, []);
+
+  useEffect(() => {
+    if (activeTab !== "repuestos") return;
+
+    if (!repuestosLoaded) {
+      fetchRepuestos();
+    }
+
+    if (!categoriasRepuestosLoaded) {
+      fetchCategoriasRepuestos();
+    }
+  }, [activeTab, repuestosLoaded, categoriasRepuestosLoaded]);
 
   const motoTipos = useMemo(
     () => categoriasMotos.filter((categoria) => !categoria.parent_id),

@@ -1,56 +1,32 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import Seccion_Slider from '../../../components/client/home/Seccion_Slider'
 import Seccion_top from '../../../components/client/home/Seccion_top'
 import Seccion_promociones from '../../../components/client/home/Seccion_promociones'
 import Seccion_trayectoria from '../../../components/client/home/Seccion_trayectoria'
-import { getSlides, getPublicImageUrl } from '../../../services/Slider.service'
-import { getRankingHomePublic } from '../../../services/rankingHome.service'
-import { getOfertasPublicas } from '../../../services/ofertas.public.service'
+import LazyMount from '../../../components/common/LazyMount'
 
+const SectionFallback = ({ className = 'h-[320px]' }) => (
+  <div className={`w-full animate-pulse bg-gray-100 ${className}`} />
+)
 
 const Home = () => {
-  const [homeData, setHomeData] = useState({
-    slides: null,
-    ranking: null,
-    oferta: null,
-  })
-
-  useEffect(() => {
-    const fetchHomeData = async () => {
-      try {
-        const [slidesResponse, rankingResponse, ofertasResponse] = await Promise.all([
-          getSlides(),
-          getRankingHomePublic(),
-          getOfertasPublicas(),
-        ])
-
-        const slides = slidesResponse.map((slide) => ({
-          ...slide,
-          url_image: getPublicImageUrl(slide.url_image),
-        }))
-
-        setHomeData({
-          slides,
-          ranking: rankingResponse,
-          oferta: ofertasResponse?.[0] || null,
-        })
-      } catch (error) {
-        console.error('Error cargando datos del home:', error)
-      }
-    }
-
-    fetchHomeData()
-  }, [])
-
   return (
     <>
-      <Seccion_Slider slidesData={homeData.slides} />
+      <LazyMount eager fallback={<SectionFallback className="h-[600px] md:h-[85vh]" />}>
+        <Seccion_Slider />
+      </LazyMount>
 
-      <Seccion_top rankingData={homeData.ranking} />
+      <LazyMount fallback={<SectionFallback className="h-[520px]" />}>
+        <Seccion_top />
+      </LazyMount>
 
-      <Seccion_promociones ofertaData={homeData.oferta} />
+      <LazyMount fallback={<SectionFallback className="h-[100vh]" />}>
+        <Seccion_promociones />
+      </LazyMount>
 
-      <Seccion_trayectoria/>
+      <LazyMount fallback={<SectionFallback className="h-[260px]" />}>
+        <Seccion_trayectoria />
+      </LazyMount>
     </>
   )
 }
