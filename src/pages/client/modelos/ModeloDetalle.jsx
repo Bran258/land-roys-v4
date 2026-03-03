@@ -243,6 +243,14 @@ const ModeloDetalle = () => {
 
   return (
     <section className="bg-white text-slate-900">
+      <a
+        href="#agenda-asesoria"
+        className="fixed right-3 md:right-5 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center gap-2 bg-yellow-400 text-black px-3 py-4 rounded-2xl shadow-xl border border-yellow-500 hover:bg-yellow-300 transition-all duration-300 hover:scale-105"
+      >
+        <span className="text-[10px] font-black tracking-[0.18em] [writing-mode:vertical-rl] rotate-180">
+          COTIZAR AHORA
+        </span>
+      </a>
       {hasVideo ? (
         <div className="relative h-screen w-full overflow-hidden">
           <video
@@ -479,7 +487,7 @@ const ModeloDetalle = () => {
           </section>
         )}
 
-        <section className="bg-[#f7f8fa] rounded-3xl p-8">
+        <section id="agenda-asesoria" className="bg-[#f7f8fa] rounded-3xl p-8 scroll-mt-24">
           <h2 className="text-2xl md:text-3xl font-black text-slate-800 text-center mb-6">
             Agenda tu asesoría
           </h2>
