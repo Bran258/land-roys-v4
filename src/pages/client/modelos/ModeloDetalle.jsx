@@ -267,13 +267,13 @@ const ModeloDetalle = () => {
           <div className="relative z-10 h-full w-full px-6 pb-12 text-white">
             <div
               ref={heroRef}
-              className={`absolute bottom-20 left-14 transition-[opacity,transform,filter] duration-[1400ms] ease-out transform-gpu will-change-[opacity,transform,filter] ${heroAnimation}`}
+              className={`absolute bottom-28 left-8 md:left-14 transition-[opacity,transform,filter] duration-[1400ms] ease-out transform-gpu will-change-[opacity,transform,filter] ${heroAnimation}`}
             >
               {moto.logo_url ? (
                 <img
                   src={modelLogo}
                   alt={`${moto.nombre} logo`}
-                  className="h-48 md:h-64 w-auto max-w-[700px] object-contain"
+                  className="h-56 md:h-72 w-auto max-w-[820px] object-contain"
                 />
               ) : (
                 <p className="uppercase tracking-[0.3em] text-yellow-300 text-xs">Modelo</p>
