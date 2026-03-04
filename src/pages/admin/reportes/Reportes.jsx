@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { getGeneralStats, getAllSales, getInventoryReport, getAllLeads } from "../../../services/Reportes.service";
 import {
     BarChart3,
@@ -19,7 +19,7 @@ const Reportes = () => {
     const [activeTab, setActiveTab] = useState('ventas'); // ventas, inventario, leads
     const [loadingStats, setLoadingStats] = useState(true);
     const [loadingTab, setLoadingTab] = useState(false);
-    const [loadedTabs, setLoadedTabs] = useState({ ventas: false, inventario: false, leads: false });
+    const [loadedTabsByRange, setLoadedTabsByRange] = useState({});
     const [data, setData] = useState({
         ventas: [],
         inventario: [],
@@ -35,7 +35,7 @@ const Reportes = () => {
     const [customRange, setCustomRange] = useState({ start: '', end: '' });
 
     // Helper to get date dates
-    const getDateRange = () => {
+    const getDateRange = useCallback(() => {
         const end = new Date();
         let start = new Date();
 
@@ -67,7 +67,7 @@ const Reportes = () => {
                 start.setDate(1); // Default to month
         }
         return { startDate: start.toISOString(), endDate: end.toISOString() };
-    };
+    }, [dateFilter, customRange.start, customRange.end]);
 
     const rangeKey = `${dateFilter}:${customRange.start}:${customRange.end}`;
 
@@ -78,8 +78,6 @@ const Reportes = () => {
                 const range = getDateRange();
                 const general = await getGeneralStats(range);
                 setStats(general);
-                setLoadedTabs({ ventas: false, inventario: false, leads: false });
-                setData({ ventas: [], inventario: [], leads: [] });
             } catch (error) {
                 console.error("Error loading reports:", error);
             } finally {
@@ -88,11 +86,11 @@ const Reportes = () => {
         };
 
         fetchStats();
-    }, [rangeKey]);
+    }, [rangeKey, getDateRange]);
 
     useEffect(() => {
         const fetchTabData = async () => {
-            if (loadedTabs[activeTab]) return;
+            if (loadedTabsByRange[`${rangeKey}:${activeTab}`]) return;
 
             setLoadingTab(true);
             try {
@@ -108,7 +106,7 @@ const Reportes = () => {
                 }
 
                 setData((prev) => ({ ...prev, [activeTab]: response }));
-                setLoadedTabs((prev) => ({ ...prev, [activeTab]: true }));
+                setLoadedTabsByRange((prev) => ({ ...prev, [`${rangeKey}:${activeTab}`]: true }));
             } catch (error) {
                 console.error("Error loading tab report:", error);
             } finally {
@@ -117,7 +115,7 @@ const Reportes = () => {
         };
 
         fetchTabData();
-    }, [activeTab, loadedTabs, rangeKey]);
+    }, [activeTab, loadedTabsByRange, rangeKey, getDateRange]);
 
     const currency = new Intl.NumberFormat("en-US", {
         style: "currency",
