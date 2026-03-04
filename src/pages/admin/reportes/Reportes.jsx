@@ -46,11 +46,12 @@ const Reportes = () => {
         switch (dateFilter) {
             case 'today':
                 break; // start is already today 00:00
-            case 'week':
+            case 'week': {
                 const day = start.getDay();
                 const diff = start.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
                 start.setDate(diff); // Monday
                 break;
+            }
             case 'month':
                 start.setDate(1); // 1st of month
                 break;

@@ -39,6 +39,17 @@ import {
   listFolderFiles,
 } from "../../../services/storageFolders.service";
 
+const TableHeader = () => (
+  <div className="grid grid-cols-[100px_1.1fr_0.9fr_0.9fr_0.9fr_120px] items-center bg-[#f5f6f8] text-[#556786] font-semibold text-[15px] rounded-t-2xl px-5 py-3 border border-gray-100">
+    <span>Imagen</span>
+    <span>Moto</span>
+    <span>Año / CC</span>
+    <span>Precio</span>
+    <span>Estado</span>
+    <span className="text-right">Acciones</span>
+  </div>
+);
+
 const initialForm = {
   nombre: "",
   marca: "",
@@ -278,9 +289,9 @@ const Inventario = () => {
   const [repuestoTipoId, setRepuestoTipoId] = useState("");
   const [repuestoSubcategoriaId, setRepuestoSubcategoriaId] = useState("");
   const [categoriasMotos, setCategoriasMotos] = useState([]);
-  const [categoriasMotosLoaded, setCategoriasMotosLoaded] = useState(false);
+  const [_categoriasMotosLoaded, setCategoriasMotosLoaded] = useState(false);
   const [categoriasRepuestosLoaded, setCategoriasRepuestosLoaded] = useState(false);
-  const [motosLoaded, setMotosLoaded] = useState(false);
+  const [_motosLoaded, setMotosLoaded] = useState(false);
   const [repuestosLoaded, setRepuestosLoaded] = useState(false);
   const [categoriaMotoForm, setCategoriaMotoForm] = useState(initialCategoriaMotoForm);
   const [categoriaMotoEditingId, setCategoriaMotoEditingId] = useState(null);
@@ -1494,17 +1505,6 @@ const Inventario = () => {
       Swal.fire("Error", "No se pudo eliminar la categoría", "error");
     }
   };
-
-  const TableHeader = () => (
-    <div className="grid grid-cols-[100px_1.1fr_0.9fr_0.9fr_0.9fr_120px] items-center bg-[#f5f6f8] text-[#556786] font-semibold text-[15px] rounded-t-2xl px-5 py-3 border border-gray-100">
-      <span>Imagen</span>
-      <span>Moto</span>
-      <span>Año / CC</span>
-      <span>Precio</span>
-      <span>Estado</span>
-      <span className="text-right">Acciones</span>
-    </div>
-  );
 
   const MotoRow = ({ moto }) => (
     <div className="grid grid-cols-[100px_1.1fr_0.9fr_0.9fr_0.9fr_120px] items-center bg-white px-5 py-3 border-x border-b border-gray-100">

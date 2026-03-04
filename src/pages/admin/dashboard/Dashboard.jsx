@@ -64,11 +64,12 @@ const Dashboard = () => {
     switch (dateFilter) {
       case 'today':
         break; // start is already today 00:00
-      case 'week':
+      case 'week': {
         const day = start.getDay();
         const diff = start.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
         start.setDate(diff); // Monday
         break;
+      }
       case 'month':
         start.setDate(1); // 1st of month
         break;
@@ -346,7 +347,7 @@ const Dashboard = () => {
                       stroke="none"
                     >
                       {leadsData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                        <Cell key={`cell-${entry.name || entry.label || index}`} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -354,7 +355,7 @@ const Dashboard = () => {
                       verticalAlign="bottom"
                       height={36}
                       iconType="circle"
-                      formatter={(value, entry) => (
+                      formatter={(value) => (
                         <span className="text-sm font-medium text-gray-600 ml-2">{value}</span>
                       )}
                     />
