@@ -144,9 +144,6 @@ const Modelos = () => {
     return motos;
   }, [motos, tipoActivo, subcategoriaActiva, subcategoriasPorTipo, categoriasById]);
 
-  useEffect(() => {
-    setSubcategoriaActiva("all");
-  }, [tipoActivo]);
 
   return (
     <section className="bg-[#f7f8fa] pb-16">
@@ -186,7 +183,7 @@ const Modelos = () => {
                 return (
                   <button
                     key={tipo.id}
-                    onClick={() => setTipoActivo(tipo.id)}
+                    onClick={() => { setTipoActivo(tipo.id); setSubcategoriaActiva("all"); }}
                     className={`px-6 py-2.5 rounded-full text-sm font-extrabold tracking-wide transition ${
                       active
                         ? "bg-yellow-400 text-black shadow-[0_10px_20px_rgba(250,204,21,0.35)]"

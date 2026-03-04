@@ -346,8 +346,8 @@ const Dashboard = () => {
                       dataKey="value"
                       stroke="none"
                     >
-                      {leadsData.map((entry, index) => (
-                        <Cell key={`cell-${entry.name || entry.label || index}`} fill={entry.color} />
+                      {leadsData.map((entry) => (
+                        <Cell key={`cell-${entry.name || entry.label || entry.color || "lead"}`} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip />

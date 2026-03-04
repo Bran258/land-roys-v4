@@ -100,7 +100,9 @@ const Header = () => {
 
             {/* OVERLAY */}
             {menuOpen && (
-                <div
+                <button
+                    type="button"
+                    aria-label="Cerrar menú móvil"
                     className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-opacity"
                     onClick={() => setMenuOpen(false)}
                 />
