@@ -1,9 +1,8 @@
 import React from 'react';
-import { Award, Users, ShieldCheck, Headphones, Calendar } from 'lucide-react';
-
+import { Award, Users, ShieldCheck, Headphones, Calendar, Bike } from 'lucide-react';
 import './Seccion_trayectoria.css';
-
 import landRoysImg from '../../../assets/img/Land_roys_experiencia.png';
+import { Link } from 'react-router-dom';
 
 const Seccion_trayectoria = () => {
   const stats = [
@@ -71,10 +70,13 @@ const Seccion_trayectoria = () => {
             </div>
 
             {/* Botón de Acción */}
-            <button className="flex items-center gap-3 bg-black text-white px-8 py-4 rounded-full font-bold text-xs hover:bg-gray-800 transition-all shadow-xl active:scale-95 uppercase tracking-widest">
-              Agenda tu cita
-              <Calendar size={18} className="text-yellow-400" />
-            </button>
+            <Link
+              to="/modelos"
+              className="w-[300px] flex items-center justify-center gap-3 bg-black text-white px-8 py-4 rounded-full font-bold text-xs hover:bg-gray-800 transition-all shadow-xl active:scale-95 uppercase tracking-widest"
+            >
+              Visita Nuestros Modelos
+              <Bike size={18} className="text-yellow-400" />
+            </Link>
           </div>
 
           {/* Lado Derecho: Imagen con Tarjeta Flotante */}
