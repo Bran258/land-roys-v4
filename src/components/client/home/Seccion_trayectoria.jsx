@@ -2,7 +2,6 @@ import React from 'react';
 import { Award, Users, ShieldCheck, Headphones, Bike } from 'lucide-react';
 
 import './Seccion_trayectoria.css';
-
 import landRoysImg from '../../../assets/img/Land_roys_experiencia.png';
 import { Link } from 'react-router-dom';
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { getGeneralStats, getAllSales, getInventoryReport, getAllLeads } from "../../../services/Reportes.service";
 import {
     BarChart3,
@@ -17,7 +17,9 @@ import autoTable from 'jspdf-autotable';
 
 const Reportes = () => {
     const [activeTab, setActiveTab] = useState('ventas'); // ventas, inventario, leads
-    const [loading, setLoading] = useState(true);
+    const [loadingStats, setLoadingStats] = useState(true);
+    const [loadingTab, setLoadingTab] = useState(false);
+    const [loadedTabsByRange, setLoadedTabsByRange] = useState({});
     const [data, setData] = useState({
         ventas: [],
         inventario: [],
@@ -33,7 +35,7 @@ const Reportes = () => {
     const [customRange, setCustomRange] = useState({ start: '', end: '' });
 
     // Helper to get date dates
-    const getDateRange = () => {
+    const getDateRange = useCallback(() => {
         const end = new Date();
         let start = new Date();
 
@@ -44,11 +46,12 @@ const Reportes = () => {
         switch (dateFilter) {
             case 'today':
                 break; // start is already today 00:00
-            case 'week':
+            case 'week': {
                 const day = start.getDay();
                 const diff = start.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
                 start.setDate(diff); // Monday
                 break;
+            }
             case 'month':
                 start.setDate(1); // 1st of month
                 break;
@@ -64,33 +67,55 @@ const Reportes = () => {
                 start.setDate(1); // Default to month
         }
         return { startDate: start.toISOString(), endDate: end.toISOString() };
-    };
+    }, [dateFilter, customRange.start, customRange.end]);
+
+    const rangeKey = `${dateFilter}:${customRange.start}:${customRange.end}`;
 
     useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
+        const fetchStats = async () => {
+            setLoadingStats(true);
             try {
                 const range = getDateRange();
-                const [general, ventasData, inventarioData, leadsData] = await Promise.all([
-                    getGeneralStats(range),
-                    getAllSales(range),
-                    getInventoryReport(), // No date filter for inventory
-                    getAllLeads(range)
-                ]);
+                const general = await getGeneralStats(range);
                 setStats(general);
-                setData({
-                    ventas: ventasData,
-                    inventario: inventarioData,
-                    leads: leadsData
-                });
             } catch (error) {
                 console.error("Error loading reports:", error);
             } finally {
-                setLoading(false);
+                setLoadingStats(false);
             }
         };
-        fetchData();
-    }, [dateFilter, customRange.start, customRange.end]);
+
+        fetchStats();
+    }, [rangeKey, getDateRange]);
+
+    useEffect(() => {
+        const fetchTabData = async () => {
+            if (loadedTabsByRange[`${rangeKey}:${activeTab}`]) return;
+
+            setLoadingTab(true);
+            try {
+                const range = getDateRange();
+                let response = [];
+
+                if (activeTab === 'ventas') {
+                    response = await getAllSales(range);
+                } else if (activeTab === 'inventario') {
+                    response = await getInventoryReport();
+                } else if (activeTab === 'leads') {
+                    response = await getAllLeads(range);
+                }
+
+                setData((prev) => ({ ...prev, [activeTab]: response }));
+                setLoadedTabsByRange((prev) => ({ ...prev, [`${rangeKey}:${activeTab}`]: true }));
+            } catch (error) {
+                console.error("Error loading tab report:", error);
+            } finally {
+                setLoadingTab(false);
+            }
+        };
+
+        fetchTabData();
+    }, [activeTab, loadedTabsByRange, rangeKey, getDateRange]);
 
     const currency = new Intl.NumberFormat("en-US", {
         style: "currency",
@@ -208,7 +233,7 @@ const Reportes = () => {
         doc.save(`Reporte_${type}_${date}.pdf`);
     };
 
-    if (loading) return (
+    if (loadingStats) return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
         </div>
@@ -344,6 +369,10 @@ const Reportes = () => {
                     </div>
                 </div>
 
+                {loadingTab && (
+                    <div className="px-6 py-3 text-sm text-gray-500 border-b border-gray-100">Cargando datos de {activeTab}...</div>
+                )}
+
                 {/* Data Table */}
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
@@ -426,13 +455,13 @@ const Reportes = () => {
                     </table>
 
                     {/* Empty States */}
-                    {activeTab === 'ventas' && data.ventas.length === 0 && (
+                    {activeTab === 'ventas' && !loadingTab && data.ventas.length === 0 && (
                         <div className="p-12 text-center text-gray-400">No hay ventas registradas.</div>
                     )}
-                    {activeTab === 'inventario' && data.inventario.length === 0 && (
+                    {activeTab === 'inventario' && !loadingTab && data.inventario.length === 0 && (
                         <div className="p-12 text-center text-gray-400">Inventario vacío.</div>
                     )}
-                    {activeTab === 'leads' && data.leads.length === 0 && (
+                    {activeTab === 'leads' && !loadingTab && data.leads.length === 0 && (
                         <div className="p-12 text-center text-gray-400">No hay leads registrados.</div>
                     )}
                 </div>

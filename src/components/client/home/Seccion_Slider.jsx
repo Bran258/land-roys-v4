@@ -24,7 +24,7 @@ const Seccion_Slider = () => {
         // Transformar url_image para que sean URLs públicas
         const slidesWithUrl = data.map(slide => ({
           ...slide,
-          url_image: getPublicImageUrl(slide.url_image)
+          url_image: getPublicImageUrl(slide.url_image),
         }));
 
         // Guardamos en cache

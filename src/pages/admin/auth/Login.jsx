@@ -1,7 +1,7 @@
 // src/pages/Login.jsx
 import React, { useState } from "react";
 import { User, Lock, Bike } from "lucide-react";
-import { useAuth } from "../../../context/AuthContext";
+import { useAuth } from "../../../context/useAuth";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -134,9 +134,9 @@ const Login = () => {
             </div>
 
             <div className="text-center">
-              <a href="#" className="text-sm text-black hover:underline font-medium">
+              <button type="button" className="text-sm text-black hover:underline font-medium">
                 ¿Has olvidado tu contraseña?
-              </a>
+              </button>
             </div>
 
             <button

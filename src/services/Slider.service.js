@@ -220,3 +220,23 @@ export const reorderSlides = async (slides) => {
 
   if (error) throw new Error(error.message);
 };
+
+// mirar porque no funciona
+export const uploadFileAndGetUrl = async (file) => {
+  const fileName = `${Date.now()}_${file.name}`;
+  const { error } = await supabase.storage
+    .from("Slides_home_img")
+    .upload(fileName, file);
+
+  if (error) throw error;
+
+  // Obtener URL pública
+  const { publicUrl, error: urlError } = supabase
+    .storage
+    .from("Slides_home_img")
+    .getPublicUrl(fileName);
+
+  if (urlError) throw urlError;
+
+  return publicUrl;
+};

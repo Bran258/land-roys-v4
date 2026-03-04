@@ -19,7 +19,6 @@ const Seccion_top = () => {
           return;
         }
 
-        // Mapear datos de la API a la estructura que usamos en el componente
         const mapped = data.map((item) => ({
           id: item.id,
           rank: item.rank || "-",
@@ -34,14 +33,9 @@ const Seccion_top = () => {
           stats: item.rank === "#1" ? "DESTACADO DE LA SEMANA" : null,
         }));
 
-        // Reordenar: colocar el producto principal (#1) en el centro
         const principal = mapped.find((p) => p.isMain);
         const secundarios = mapped.filter((p) => !p.isMain);
-        const ordered = [
-          secundarios[0] || null,
-          principal,
-          secundarios[1] || null,
-        ].filter(Boolean);
+        const ordered = [secundarios[0] || null, principal, secundarios[1] || null].filter(Boolean);
 
         setProducts(ordered);
       } catch (error) {
@@ -60,14 +54,9 @@ const Seccion_top = () => {
   return (
     <section className="py-20 bg-[#F0F0F0] ">
       <div className="container mx-auto px-4">
-        {/* Encabezado */}
         <div className="text-center mb-16">
-          <span className="text-yellow-600 text-[10px] font-bold tracking-[0.2em] uppercase">
-            Colección Exclusiva
-          </span>
-          <h2 className="text-3xl md:text-4xl font-black text-[#1a1f2c] mt-2 italic tracking-tighter">
-            MÁS VENDIDOS DE LA SEMANA
-          </h2>
+          <span className="text-yellow-600 text-[10px] font-bold tracking-[0.2em] uppercase">Colección Exclusiva</span>
+          <h2 className="text-3xl md:text-4xl font-black text-[#1a1f2c] mt-2 italic tracking-tighter">MÁS VENDIDOS DE LA SEMANA</h2>
           <div className="w-12 h-1 bg-yellow-400 mx-auto mt-4"></div>
         </div>
 
@@ -78,10 +67,8 @@ const Seccion_top = () => {
               className={`seccion-top-card relative bg-white rounded-[2.5rem] p-8 transition-all duration-500 hover:-translate-y-2
                 ${item.isMain
                   ? "w-full md:w-[400px] border-2 border-yellow-400 shadow-[0_20px_50px_rgba(252,211,77,0.15)] z-20"
-                  : "w-full md:w-[320px] border border-gray-100 shadow-xl z-10"
-                }`}
+                  : "w-full md:w-[320px] border border-gray-100 shadow-xl z-10"}`}
             >
-              {/* Badge principal */}
               {item.isMain && (
                 <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-white border border-yellow-400 px-4 py-1.5 rounded-full flex items-center gap-2 shadow-sm">
                   <Award size={16} className="text-yellow-500" />
@@ -89,7 +76,6 @@ const Seccion_top = () => {
                 </div>
               )}
 
-              {/* Ranking */}
               <div className="flex justify-between items-start mb-6">
                 <span className={`text-4xl font-black italic ${item.isMain ? "text-yellow-500/90" : "text-gray-400"}`}>
                   {item.rank}
@@ -99,7 +85,7 @@ const Seccion_top = () => {
                   <div className="text-right">
                     <div className="flex text-yellow-400 mb-1">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} size={14} fill="currentColor" />
+                        <Star key={`${item.id || item.name}-star-${i}`} size={14} fill="currentColor" />
                       ))}
                     </div>
                     <span className="text-[9px] font-bold text-gray-400">{item.stats}</span>
@@ -111,44 +97,27 @@ const Seccion_top = () => {
                 )}
               </div>
 
-              {/* Imagen */}
               <div className="aspect-square mb-8 overflow-hidden rounded-2xl bg-gray-50">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-full h-full object-cover mix-blend-multiply hover:scale-110 transition-transform duration-700"
-                />
+                <img src={item.image} alt={item.name} className="w-full h-full object-cover mix-blend-multiply hover:scale-110 transition-transform duration-700" />
               </div>
 
-              {/* Info */}
               <div className="space-y-4">
                 <h3 className="text-xl font-black text-gray-900 leading-tight">{item.name}</h3>
 
                 {item.isMain ? (
-                  <p className="text-gray-500 text-sm leading-relaxed italic border-l-2 border-yellow-400 pl-4">
-                    "{item.quote}"
-                  </p>
+                  <p className="text-gray-500 text-sm leading-relaxed italic border-l-2 border-yellow-400 pl-4">"{item.quote}"</p>
                 ) : (
                   <p className="text-gray-400 text-xs leading-relaxed">{item.desc}</p>
                 )}
 
                 <div className="flex justify-between items-center pt-4">
                   <div>
-                    {item.isMain && (
-                      <span className="block text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                        Inversión
-                      </span>
-                    )}
-                    <span className={`font-black ${item.isMain ? "text-2xl text-gray-900" : "text-lg text-gray-500"}`}>
-                      {item.price}
-                    </span>
+                    {item.isMain && <span className="block text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">Inversión</span>}
+                    <span className={`font-black ${item.isMain ? "text-2xl text-gray-900" : "text-lg text-gray-500"}`}>{item.price}</span>
                   </div>
 
                   {item.isMain ? (
-                    <a
-                      href={item.btnPrimary}
-                      className="bg-black text-white px-8 py-3 rounded-full text-xs font-bold hover:bg-gray-800 transition-colors shadow-lg inline-block"
-                    >
+                    <a href={item.btnPrimary} className="bg-black text-white px-8 py-3 rounded-full text-xs font-bold hover:bg-gray-800 transition-colors shadow-lg inline-block">
                       RESERVAR
                     </a>
                   ) : (

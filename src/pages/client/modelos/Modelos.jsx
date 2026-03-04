@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { getMotos } from "../../../services/motos.service";
 import { getCategoriasMotos } from "../../../services/CategoriasMotos.service";
+import { resolveFichaTecnicaUrl } from "../../../util/fichaTecnica";
 
 const currency = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -16,6 +17,8 @@ const stateColors = {
   agotado: "bg-red-100 text-red-600",
   preventa: "bg-blue-100 text-blue-700",
 };
+
+const normalizeText = (value) => String(value || "").trim().toLowerCase();
 
 const Modelos = () => {
   const [motos, setMotos] = useState([]);
@@ -57,9 +60,15 @@ const Modelos = () => {
   );
 
   const tiposDisponibles = useMemo(() => {
-    if (tipos.length > 0) return ["all", ...tipos.map((tipo) => tipo.nombre)];
+    if (tipos.length > 0) {
+      return [
+        { id: "all", nombre: "Todas" },
+        ...tipos.map((tipo) => ({ id: tipo.id, nombre: tipo.nombre })),
+      ];
+    }
+
     const unique = [...new Set(motos.map((m) => m.categoria).filter(Boolean))];
-    return ["all", ...unique];
+    return [{ id: "all", nombre: "Todas" }, ...unique.map((nombre) => ({ id: nombre, nombre }))];
   }, [tipos, motos]);
 
   const subcategoriasPorTipo = useMemo(() => {
@@ -73,36 +82,68 @@ const Modelos = () => {
 
   const subcategoriasVisibles = useMemo(() => {
     if (tipoActivo === "all") return [];
-    const tipoId = tipos.find((tipo) => tipo.nombre === tipoActivo)?.id;
-    if (!tipoId) return [];
-    return subcategoriasPorTipo[tipoId] || [];
-  }, [tipoActivo, tipos, subcategoriasPorTipo]);
+
+    if (tipos.length === 0) return [];
+    return subcategoriasPorTipo[tipoActivo] || [];
+  }, [tipoActivo, tipos.length, subcategoriasPorTipo]);
+
+  const categoriasById = useMemo(() => {
+    return categoriasMotos.reduce((acc, categoria) => {
+      acc[String(categoria.id)] = categoria;
+      return acc;
+    }, {});
+  }, [categoriasMotos]);
+
 
   const motosFiltradas = useMemo(() => {
     if (tipoActivo === "all" && subcategoriaActiva === "all") return motos;
 
+    const motoMatches = (moto, { ids = [], names = [] }) => {
+      const motoIds = new Set([
+        String(moto.categoria_id || ""),
+        String(moto.categoria_parent_id || ""),
+      ]);
+      const motoCategoria = normalizeText(moto.categoria);
+
+      const byId = ids.some((id) => motoIds.has(String(id)));
+      const byName = names.some((name) => motoCategoria === normalizeText(name));
+      return byId || byName;
+    };
+
     if (subcategoriaActiva !== "all") {
-      return motos.filter(
-        (m) => (m.categoria || "").toLowerCase() === subcategoriaActiva.toLowerCase()
+      const subcategoria = categoriasById[String(subcategoriaActiva)];
+      return motos.filter((moto) =>
+        motoMatches(moto, {
+          ids: [subcategoriaActiva],
+          names: [subcategoria?.nombre],
+        })
       );
     }
 
     if (tipoActivo !== "all") {
-      const tipoId = tipos.find((tipo) => tipo.nombre === tipoActivo)?.id;
-      const children = tipoId ? subcategoriasPorTipo[tipoId] || [] : [];
+      const tipo = categoriasById[String(tipoActivo)];
+      const children = subcategoriasPorTipo[tipoActivo] || [];
+
       if (children.length > 0) {
-        const childNames = children.map((child) => child.nombre.toLowerCase());
-        return motos.filter((m) => childNames.includes((m.categoria || "").toLowerCase()));
+        return motos.filter((moto) =>
+          motoMatches(moto, {
+            ids: [tipoActivo, ...children.map((child) => child.id)],
+            names: [tipo?.nombre, ...children.map((child) => child.nombre)],
+          })
+        );
       }
-      return motos.filter((m) => (m.categoria || "").toLowerCase() === tipoActivo.toLowerCase());
+
+      return motos.filter((moto) =>
+        motoMatches(moto, {
+          ids: [tipoActivo],
+          names: [tipo?.nombre],
+        })
+      );
     }
 
     return motos;
-  }, [motos, tipoActivo, subcategoriaActiva, tipos, subcategoriasPorTipo]);
+  }, [motos, tipoActivo, subcategoriaActiva, subcategoriasPorTipo, categoriasById]);
 
-  useEffect(() => {
-    setSubcategoriaActiva("all");
-  }, [tipoActivo]);
 
   return (
     <section className="bg-[#f7f8fa] pb-16">
@@ -138,18 +179,18 @@ const Modelos = () => {
           <div className="px-6 py-5 space-y-4 bg-white">
             <div className="flex flex-wrap gap-3">
               {tiposDisponibles.map((tipo) => {
-                const active = tipoActivo === tipo;
+                const active = String(tipoActivo) === String(tipo.id);
                 return (
                   <button
-                    key={tipo}
-                    onClick={() => setTipoActivo(tipo)}
+                    key={tipo.id}
+                    onClick={() => { setTipoActivo(tipo.id); setSubcategoriaActiva("all"); }}
                     className={`px-6 py-2.5 rounded-full text-sm font-extrabold tracking-wide transition ${
                       active
                         ? "bg-yellow-400 text-black shadow-[0_10px_20px_rgba(250,204,21,0.35)]"
                         : "bg-[#f4f6f9] text-[#51617d] hover:bg-gray-200"
                     }`}
                   >
-                    {tipo === "all" ? "Todas" : tipo}
+                    {tipo.nombre}
                   </button>
                 );
               })}
@@ -178,9 +219,9 @@ const Modelos = () => {
                   {subcategoriasVisibles.map((categoria) => (
                     <button
                       key={categoria.id}
-                      onClick={() => setSubcategoriaActiva(categoria.nombre)}
+                      onClick={() => setSubcategoriaActiva(categoria.id)}
                       className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${
-                        subcategoriaActiva === categoria.nombre
+                        String(subcategoriaActiva) === String(categoria.id)
                           ? "bg-yellow-400 text-black"
                           : "bg-yellow-50 text-yellow-700 hover:bg-yellow-100"
                       }`}
@@ -231,9 +272,21 @@ const Modelos = () => {
                     <h3 className="text-xl font-bold text-[#6783b0] leading-tight">{moto.nombre}</h3>
                     {moto.marca && <p className="text-xs text-gray-400">{moto.marca}</p>}
                   </div>
-                  <p className="text-xl font-black text-black whitespace-nowrap">
-                    {currency.format(Number(moto.precio || 0))}
-                  </p>
+                  <div className="text-right">
+                    <p className="text-xl font-black text-black whitespace-nowrap">
+                      {currency.format(Number(moto.precio || 0))}
+                    </p>
+                    {resolveFichaTecnicaUrl(moto) && (
+                      <a
+                        href={resolveFichaTecnicaUrl(moto)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ficha-tecnica-btn text-xs"
+                      >
+                        Ver ficha técnica (PDF)
+                      </a>
+                    )}
+                  </div>
                 </div>
 
                 {moto.descripcion && <p className="text-xs text-gray-500">{moto.descripcion}</p>}
