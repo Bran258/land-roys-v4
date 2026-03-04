@@ -18,6 +18,20 @@ export const getSlides = async () => {
 };
 
 /* =========================
+    Obtener Slides Activos para Cliente
+========================= */
+export const getActiveSlides = async () => {
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("*")
+    .eq("estado", true) // solo traer activos para el cliente
+    .order("orden", { ascending: true });
+
+  if (error) throw new Error(error.message);
+  return data ?? [];
+};
+
+/* =========================
    Subir imagen a Storage
 ========================= */
 const uploadImage = async (file) => {
@@ -144,9 +158,9 @@ export const updateSlide = async (id, payload) => {
    Eliminar Slide (BD + Storage)
 ========================= */
 export const deleteSlide = async (id) => {
+  // Validación básica de ID
   if (!id) throw new Error("ID requerido");
-
-  //  Obtener datos del slide
+  // Obtener el slide para conocer la imagen a eliminar
   const { data: slide, error: fetchError } = await supabase
     .from(TABLE)
     .select("url_image")
@@ -155,23 +169,31 @@ export const deleteSlide = async (id) => {
 
   if (fetchError) throw new Error(fetchError.message);
 
-  // Eliminar registro de la base de datos
+  // Eliminar registro de la BD
   const { error: deleteError } = await supabase
     .from(TABLE)
     .delete()
     .eq("id", id);
 
   if (deleteError) throw new Error(deleteError.message);
-
-  //  Eliminar imagen del storage (no bloquea si falla)
+  // Eliminar imagen del Storage si existe
   if (slide?.url_image) {
-    const { error: storageError } = await supabase.storage
-      .from(BUCKET)
-      .remove([slide.url_image]);
+    await supabase.storage.from(BUCKET).remove([slide.url_image]);
+  }
 
-    if (storageError) {
-      console.warn("La imagen no se pudo eliminar del storage:", storageError.message);
-    }
+  //REORDENAR AUTOMÁTICAMENTE
+  const { data: remaining } = await supabase
+    .from(TABLE)
+    .select("id")
+    .order("orden", { ascending: true });
+  // Si quedan slides, actualizamos su orden para evitar huecos
+  if (remaining) {
+    const updates = remaining.map((s, index) => ({
+      id: s.id,
+      orden: index,
+    }));
+
+    await supabase.from(TABLE).upsert(updates);
   }
 
   return true;
@@ -197,23 +219,4 @@ export const reorderSlides = async (slides) => {
     .upsert(updates, { onConflict: "id" });
 
   if (error) throw new Error(error.message);
-};
-
-export const uploadFileAndGetUrl = async (file) => {
-  const fileName = `${Date.now()}_${file.name}`;
-  const { data, error } = await supabase.storage
-    .from("Slides_home_img")
-    .upload(fileName, file);
-
-  if (error) throw error;
-
-  // Obtener URL pública
-  const { publicUrl, error: urlError } = supabase
-    .storage
-    .from("Slides_home_img")
-    .getPublicUrl(fileName);
-
-  if (urlError) throw urlError;
-
-  return publicUrl;
 };

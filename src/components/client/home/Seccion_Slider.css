@@ -1,15 +1,63 @@
 /* Paginación como línea */
-.swiper .swiper-pagination-bullet {
-    background-color: #4b5563;
-    opacity: 1;
-    width: 30px;
-    height: 3px;
-    border-radius: 2px;
-    margin: 0 4px;
-    transition: width 0.3s ease, background-color 0.3s ease;
+/* Contenedor centrado real */
+.swiper-pagination {
+  bottom: 45px !important;
+
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+
+  width: 200px !important;
+
+  left: 0 !important;
+  right: 0 !important;
+  margin: 0 auto !important;
 }
 
-.swiper .swiper-pagination-bullet-active {
-    background-color: #facc15;
-    width: 50px;
+/* Barra base */
+.swiper-pagination-bullet {
+  flex: 1;
+  height: 5px !important;
+  border-radius: 999px !important;
+  background: #ffffff !important; /* negro intenso */
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+
+/* Hover sutil */
+.swiper-pagination-bullet:hover {
+  background: #ffffff !important;
+}
+
+/* Activo */
+.swiper-pagination-bullet-active {
+  background: #ffffff !important;
+}
+
+/* Barra animada naranja elegante */
+.swiper-pagination-bullet-active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 0%;
+  border-radius: 999px;
+
+  background: linear-gradient(
+    90deg,
+    #ff4d00,
+    #ff6a00,
+    #ff8c00
+  );
+
+  box-shadow: 0 0 10px rgba(255, 102, 0, 0.5);
+
+  animation: progress 4s linear forwards;
+}
+
+@keyframes progress {
+  from { width: 0%; }
+  to { width: 100%; }
 }

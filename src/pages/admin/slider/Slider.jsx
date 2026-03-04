@@ -7,7 +7,6 @@ import {
   updateSlide,
   reorderSlides,
   deleteSlide,
-  uploadFileAndGetUrl,
   getPublicImageUrl
 } from "../../../services/Slider.service";
 import Swal from "sweetalert2";
@@ -50,22 +49,10 @@ const Slider = () => {
   // Agregar nuevo slide
   const handleAddSlide = async (slideData) => {
     try {
-      // Subir la imagen primero y obtener la URL
-      let url_image = null;
-      if (slideData.file) {
-        url_image = await uploadFileAndGetUrl(slideData.file);
-      }
-
-      // Crear slide con la URL ya disponible
-      const newSlide = await addSlide({
-        ...slideData,
-        url_image,
-        orden: slides.length > 0 ? Math.max(...slides.map((s) => s.orden)) + 1 : 0,
-      });
-
-      // Actualizar estado local para mostrar inmediatamente
+      // Si se seleccionó un archivo, subirlo primero para obtener la URL
+      const newSlide = await addSlide(slideData);
+      // Recargar slides para obtener el nuevo ID y URL actualizada
       setSlides((prev) => [...prev, newSlide]);
-      setSelectedId(newSlide.id);
 
       Swal.fire({
         icon: "success",
@@ -73,6 +60,7 @@ const Slider = () => {
         timer: 1500,
         showConfirmButton: false
       });
+
     } catch (err) {
       console.error("Error creando slide:", err);
       Swal.fire({

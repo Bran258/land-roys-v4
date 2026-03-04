@@ -13,7 +13,7 @@ const Consulta = () => {
     }, []);
 
     return (
-        <section className="bg-[#fcfcf9] py-20 px-6">
+        <section className="bg-[#F2F2F2] py-20 px-6">
             <div className="max-w-7xl mx-auto">
 
                 {/* --- Header Section --- */}

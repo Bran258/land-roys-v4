@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Star, ArrowUpRight, Award } from "lucide-react";
 import { getRankingHomePublic } from "../../../services/rankingHome.service";
 import "./Seccion_top.css";
+import { Link } from "react-router-dom";
 
 const Seccion_top = () => {
   const [products, setProducts] = useState([]);
@@ -57,7 +58,7 @@ const Seccion_top = () => {
   if (loading || products.length === 0) return null;
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-[#F0F0F0] ">
       <div className="container mx-auto px-4">
         {/* Encabezado */}
         <div className="text-center mb-16">
@@ -151,8 +152,8 @@ const Seccion_top = () => {
                       RESERVAR
                     </a>
                   ) : (
-                    <a
-                      href="#"
+                    <Link
+                      to = "/modelos"
                       className="flex items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-black transition-colors group"
                     >
                       EXPLORAR
@@ -160,7 +161,7 @@ const Seccion_top = () => {
                         size={14}
                         className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"
                       />
-                    </a>
+                    </Link>
                   )}
                 </div>
               </div>

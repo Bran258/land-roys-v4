@@ -8,7 +8,7 @@ const Nosotros = () => {
         <div className="bg-white font-sans">
 
             {/* --- Hero Section --- */}
-            <section className="hero relative h-[70vh] flex items-center justify-center text-center text-white">
+            <section className="shadow-[0_4px_14px_8px_rgba(0,0,0,0.60)] hero relative h-[70vh] flex items-center justify-center text-center text-white">
                 <div className="hero-bg" aria-hidden="true">
                     <div className="hero-overlay"></div>
                 </div>
@@ -26,7 +26,7 @@ const Nosotros = () => {
 
             <main>
                 {/* --- Story Section --- */}
-                <section className="py-20 px-6 max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+                <section className=" py-20 px-6 max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
                     <div>
                         <div className="w-12 h-1 bg-yellow-500 mb-4"></div>
                         <h2 className="text-4xl font-bold mb-6">Dominando Terrenos, Creando Aventuras</h2>
@@ -53,7 +53,7 @@ const Nosotros = () => {
                 </section>
 
                 {/* --- Values Section --- */}
-                <section className="py-20 bg-gray-50 px-6" aria-labelledby="valores-title">
+                <section className="py-20 bg-gray-100 px-6" aria-labelledby="valores-title">
                     <div className="max-w-7xl mx-auto">
                         <div className="flex justify-between items-end mb-12">
                             <div>

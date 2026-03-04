@@ -34,7 +34,7 @@ const Header = () => {
             <header
                 className={`w-full sticky top-0 z-50 transition-all duration-300 ${
                     scrolled
-                        ? "bg-white shadow-lg"
+                        ? "bg-white shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] border-b-[1px] border-[#292929]"
                         : "bg-white/80 backdrop-blur-md"
                 }`}
             >
