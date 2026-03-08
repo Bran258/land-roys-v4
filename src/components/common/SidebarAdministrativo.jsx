@@ -12,6 +12,7 @@ import {
     GalleryHorizontal,
     LayoutPanelLeft,
     ChartArea,
+    Newspaper,
 
 } from "lucide-react";
 
@@ -53,6 +54,11 @@ const SidebarAdministrativo = () => {
             icon: <Users size={22} />,
             label: "Clientes",
             path: "/admin/clientes",
+        },
+        {
+            icon: <Newspaper size={22} />,
+            label: "Blog",
+            path: "/admin/blog_gestion",
         },
         {
             icon: <BarChart3 size={22} />,
