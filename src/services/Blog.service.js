@@ -1,7 +1,7 @@
 import { supabase } from '../api/Supabase.provider';
 
-// Nombre del bucket existente
-const BLOG_BUCKET = import.meta.env.VITE_SUPABASE_RANKING_BUCKET || "ranking_3";
+// Nombre del bucket dedicado para el blog
+const BLOG_BUCKET = "blog_images";
 
 // Utilidad para generar slugs a partir del título
 const generateSlug = (title) => {
