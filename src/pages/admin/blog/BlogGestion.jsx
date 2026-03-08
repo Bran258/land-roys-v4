@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Search, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, Edit2, Trash2, Search, Link as LinkIcon, Image as ImageIcon, Upload } from 'lucide-react';
 import { BlogService } from '../../../services/Blog.service';
 import Swal from 'sweetalert2';
 
@@ -9,6 +9,12 @@ const BlogGestion = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [currentPost, setCurrentPost] = useState(null);
+
+    const [heroImage, setHeroImage] = useState('');
+    const [uploadingHero, setUploadingHero] = useState(false);
+    const [uploadingCover, setUploadingCover] = useState(false);
+    const heroFileInputRef = useRef(null);
+    const coverFileInputRef = useRef(null);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -25,7 +31,13 @@ const BlogGestion = () => {
 
     useEffect(() => {
         fetchPosts();
+        fetchHeroImage();
     }, []);
+
+    const fetchHeroImage = async () => {
+        const url = await BlogService.getHeroImage();
+        if (url) setHeroImage(url);
+    };
 
     const fetchPosts = async () => {
         setLoading(true);
@@ -125,10 +137,43 @@ const BlogGestion = () => {
         }
     };
 
+    const handleHeroImageChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setUploadingHero(true);
+        try {
+            const url = await BlogService.uploadImage(file, true);
+            await BlogService.setHeroImage(url);
+            setHeroImage(url);
+            Swal.fire('Éxito', 'Imagen principal (Hero) actualizada', 'success');
+        } catch (error) {
+            Swal.fire('Error', 'No se pudo actualizar la imagen principal', 'error');
+        } finally {
+            setUploadingHero(false);
+            if (heroFileInputRef.current) heroFileInputRef.current.value = '';
+        }
+    };
+
+    const handleCoverImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setUploadingCover(true);
+        try {
+            const url = await BlogService.uploadImage(file, false);
+            setFormData(prev => ({ ...prev, cover_image: url }));
+        } catch (error) {
+            Swal.fire('Error', 'No se pudo subir la imagen', 'error');
+        } finally {
+            setUploadingCover(false);
+            if (coverFileInputRef.current) coverFileInputRef.current.value = '';
+        }
+    };
+
     // Filter posts
     const filteredPosts = posts.filter(post =>
-        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.category.toLowerCase().includes(searchTerm.toLowerCase())
+        post.slug !== 'config-hero-image-system' &&
+        (post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            post.category.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     return (
@@ -142,6 +187,36 @@ const BlogGestion = () => {
                     <Plus size={20} />
                     Nuevo Post
                 </button>
+            </div>
+
+            {/* Configuración del Hero Image */}
+            <div className="bg-[#1e1e1e] p-6 rounded-xl mb-6 flex flex-col md:flex-row items-center gap-6 border border-gray-800">
+                <div className="flex-1 space-y-2">
+                    <h2 className="text-lg font-bold text-white">Imagen Principal del Blog (Hero)</h2>
+                    <p className="text-sm text-gray-400">Esta es la imagen de fondo que aparece en la parte superior de la página principal del blog.</p>
+                    <div className="flex gap-4 mt-4">
+                        <input
+                            type="file"
+                            accept="image/*"
+                            ref={heroFileInputRef}
+                            onChange={handleHeroImageChange}
+                            className="hidden"
+                        />
+                        <button
+                            onClick={() => heroFileInputRef.current?.click()}
+                            disabled={uploadingHero}
+                            className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-50"
+                        >
+                            <Upload size={18} />
+                            {uploadingHero ? 'Subiendo...' : 'Subir Nueva Imagen'}
+                        </button>
+                    </div>
+                </div>
+                {heroImage && (
+                    <div className="w-full md:w-64 h-32 rounded-lg border border-gray-700 overflow-hidden shrink-0">
+                        <img src={heroImage} alt="Hero Preview" className="w-full h-full object-cover" />
+                    </div>
+                )}
             </div>
 
             {/* Buscador */}
@@ -302,26 +377,45 @@ const BlogGestion = () => {
                                 </div>
                             </div>
 
-                            {/* Imagen URL */}
+                            {/* Imagen URL o File */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-300">URL de la Imagen de Portada</label>
-                                <div className="flex gap-2">
-                                    <div className="relative flex-1">
-                                        <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                                        <input
-                                            type="url"
-                                            name="cover_image"
-                                            value={formData.cover_image}
-                                            onChange={handleInputChange}
-                                            className="w-full bg-[#121212] border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-white focus:outline-none focus:border-yellow-400"
-                                            placeholder="https://ejemplo.com/imagen.jpg"
-                                        />
-                                    </div>
-                                    {formData.cover_image && (
-                                        <div className="w-12 h-10 rounded border border-gray-700 overflow-hidden shrink-0">
-                                            <img src={formData.cover_image} alt="Preview" className="w-full h-full object-cover" />
+                                <label className="text-sm font-medium text-gray-300">Imagen de Portada</label>
+                                <div className="flex flex-col gap-3">
+                                    <div className="flex gap-2">
+                                        <div className="relative flex-1">
+                                            <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                                            <input
+                                                type="url"
+                                                name="cover_image"
+                                                value={formData.cover_image}
+                                                onChange={handleInputChange}
+                                                className="w-full bg-[#121212] border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-white focus:outline-none focus:border-yellow-400"
+                                                placeholder="https://ejemplo.com/imagen.jpg o sube un archivo"
+                                            />
                                         </div>
-                                    )}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            ref={coverFileInputRef}
+                                            onChange={handleCoverImageUpload}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => coverFileInputRef.current?.click()}
+                                            disabled={uploadingCover}
+                                            className="bg-gray-800 hover:bg-gray-700 flex items-center justify-center px-4 rounded-lg text-white transition-colors disabled:opacity-50"
+                                            title="Subir Archivo"
+                                        >
+                                            <Upload size={18} />
+                                        </button>
+                                        {formData.cover_image && (
+                                            <div className="w-12 h-10 rounded border border-gray-700 overflow-hidden shrink-0">
+                                                <img src={formData.cover_image} alt="Preview" className="w-full h-full object-cover" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-gray-500">Puedes pegar una URL directamente o hacer clic en el botón para subir una imagen de tu computadora.</p>
                                 </div>
                             </div>
 

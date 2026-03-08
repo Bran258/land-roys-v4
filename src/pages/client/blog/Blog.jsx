@@ -76,22 +76,30 @@ const Blog = () => {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedCategory, setSelectedCategory] = useState('Todos');
+    const [heroImageUrl, setHeroImageUrl] = useState("https://lh3.googleusercontent.com/aida-public/AB6AXuA-8a9VGFcGEqG5-p3LX-I7rzNV1oLkSNMHbSGH7hD_aJUvkjsa1uVWZBwuG2N7Tz0lJTBjd3Dp44JbnZHtcFFg1bg2NA_2JDbX0h8Jq7ar6iJA8e8eS4KnItXEBnPt47XCtoHxjIalKfEuApN4XnxuGE5xZi7ynahDGQ6I4p4ApVeJNvEoN1MUcN5QHyt3R6YH4yqv1dH-Ki-AA7wreJzM999EwLNn0Fdi3_FfC6DHLmzRsPXH-ryc6VS-q7Q0OGR_rWeRjuDQ1zE");
 
     const categorias = ['Todos', 'Noticias', 'Eventos', 'Tips & Guías', 'Mantenimiento'];
 
     useEffect(() => {
-        const fetchPosts = async () => {
+        const fetchPostsAndHero = async () => {
             try {
+                // Obtenemos posts
                 const response = await BlogService.getPublishedPosts();
                 setPosts(response.data || []);
+
+                // Obtenemos la imagen configurada para el Hero
+                const heroUrl = await BlogService.getHeroImage();
+                if (heroUrl) {
+                    setHeroImageUrl(heroUrl);
+                }
             } catch (error) {
-                console.error("Error cargando posts", error);
+                console.error("Error cargando posts y hero:", error);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchPosts();
+        fetchPostsAndHero();
     }, []);
 
     const filteredPosts = selectedCategory === 'Todos'
@@ -103,7 +111,7 @@ const Blog = () => {
             {/* Hero Section */}
             <section className="relative w-full h-[70vh] min-h-[500px] overflow-hidden">
                 <div className="absolute inset-0">
-                    <img className="w-full h-full object-cover" alt="Hero background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-8a9VGFcGEqG5-p3LX-I7rzNV1oLkSNMHbSGH7hD_aJUvkjsa1uVWZBwuG2N7Tz0lJTBjd3Dp44JbnZHtcFFg1bg2NA_2JDbX0h8Jq7ar6iJA8e8eS4KnItXEBnPt47XCtoHxjIalKfEuApN4XnxuGE5xZi7ynahDGQ6I4p4ApVeJNvEoN1MUcN5QHyt3R6YH4yqv1dH-Ki-AA7wreJzM999EwLNn0Fdi3_FfC6DHLmzRsPXH-ryc6VS-q7Q0OGR_rWeRjuDQ1zE" />
+                    <img className="w-full h-full object-cover" alt="Hero background" src={heroImageUrl} />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/40 to-transparent"></div>
                 </div>
                 <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-16">

@@ -1,5 +1,8 @@
 import { supabase } from '../api/Supabase.provider';
 
+// Nombre del bucket existente
+const BLOG_BUCKET = import.meta.env.VITE_SUPABASE_RANKING_BUCKET || "ranking_3";
+
 // Utilidad para generar slugs a partir del título
 const generateSlug = (title) => {
     return title
@@ -59,6 +62,74 @@ export const BlogService = {
         } catch (error) {
             console.error(`Error fetching post ${id}:`, error);
             throw error;
+        }
+    },
+
+    // ======== MANEJO DE IMÁGENES ========
+
+    // Subir imagen para portada o hero
+    async uploadImage(file, isHero = false) {
+        if (!file) return null;
+
+        try {
+            const fileExt = file.name.split(".").pop();
+            const fileName = isHero ? `hero_main_${Date.now()}.${fileExt}` : `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const filePath = `blog/${isHero ? 'hero' : 'covers'}/${fileName}`;
+
+            const { error } = await supabase.storage
+                .from(BLOG_BUCKET)
+                .upload(filePath, file, { cacheControl: "3600", upsert: true });
+
+            if (error) throw error;
+
+            const { data: publicData } = supabase.storage
+                .from(BLOG_BUCKET)
+                .getPublicUrl(filePath);
+
+            return publicData.publicUrl;
+        } catch (err) {
+            console.error("Error al subir imagen:", err);
+            throw err;
+        }
+    },
+
+    // Obtener y cambiar el hero es básicamente guardar un post especial o solo usar la última imagen subida a config.
+    // Como no hay tabla de config, usaremos localhost o buscaremos si podemos crear un post dummy "config-hero"
+    async getHeroImage() {
+        try {
+            const { data, error } = await supabase
+                .from('blog_posts')
+                .select('cover_image')
+                .eq('slug', 'config-hero-image-system')
+                .single();
+            if (error) return null;
+            return data.cover_image;
+        } catch {
+            return null;
+        }
+    },
+
+    async setHeroImage(url) {
+        try {
+            // Verificar si el dummy de hero existe
+            const { data: existing } = await supabase.from('blog_posts').select('id').eq('slug', 'config-hero-image-system').single();
+
+            if (existing) {
+                await supabase.from('blog_posts').update({ cover_image: url }).eq('id', existing.id);
+            } else {
+                await supabase.from('blog_posts').insert([{
+                    title: 'System Config Hero',
+                    slug: 'config-hero-image-system',
+                    category: 'System',
+                    content: 'No borrar',
+                    cover_image: url,
+                    is_published: false
+                }]);
+            }
+            return url;
+        } catch (err) {
+            console.error("Error setHeroImage:", err);
+            throw err;
         }
     },
 
