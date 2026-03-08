@@ -14,6 +14,45 @@ const Home = () => {
     <>
       <LazyMount eager fallback={<SectionFallback className="h-[600px] md:h-[85vh]" />}>
         <Seccion_Slider />
+        <section className="w-full py-16 bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 items-center">
+
+              <img
+                src="https://logo.clearbit.com/honda.com"
+                alt="Honda"
+                className="mx-auto h-12 object-contain opacity-70 hover:opacity-100 transition"
+              />
+
+              <img
+                src="https://logo.clearbit.com/yamaha-motor.eu"
+                alt="Yamaha"
+                className="mx-auto h-12 object-contain opacity-70 hover:opacity-100 transition"
+              />
+
+              <img
+                src="https://logo.clearbit.com/global.suzuki"
+                alt="Suzuki"
+                className="mx-auto h-12 object-contain opacity-70 hover:opacity-100 transition"
+              />
+
+              <img
+                src="https://logo.clearbit.com/ktm.com"
+                alt="KTM"
+                className="mx-auto h-12 object-contain opacity-70 hover:opacity-100 transition"
+              />
+
+              <img
+                src="https://logo.clearbit.com/kawasaki.com"
+                alt="Kawasaki"
+                className="mx-auto h-12 object-contain opacity-70 hover:opacity-100 transition"
+              />
+
+            </div>
+
+          </div>
+        </section>
       </LazyMount>
 
       <LazyMount fallback={<SectionFallback className="h-[520px]" />}>

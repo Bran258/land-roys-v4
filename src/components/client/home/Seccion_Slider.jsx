@@ -46,7 +46,7 @@ const Seccion_Slider = () => {
   }
 
   return (
-      <div className="w-full h-[600px] md:h-[85vh] mb-5 shadow-[0_30px_8px_-20px_rgba(0,0,0,0.60)]">
+    <div className="w-full h-[600px] md:h-[85vh]">
       <Swiper
         modules={[Autoplay, Pagination, EffectFade]}
         effect="fade"
