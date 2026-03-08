@@ -179,7 +179,7 @@ const BlogGestion = () => {
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-white">Gestión de Blog</h1>
+                <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Gestión de Blog</h1>
                 <button
                     onClick={() => handleOpenModal()}
                     className="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
@@ -190,10 +190,10 @@ const BlogGestion = () => {
             </div>
 
             {/* Configuración del Hero Image */}
-            <div className="bg-[#1e1e1e] p-6 rounded-xl mb-6 flex flex-col md:flex-row items-center gap-6 border border-gray-800">
+            <div className="bg-white dark:bg-[#1e1e1e] p-6 rounded-xl mb-6 flex flex-col md:flex-row items-center gap-6 border border-slate-200 dark:border-gray-800 shadow-sm">
                 <div className="flex-1 space-y-2">
-                    <h2 className="text-lg font-bold text-white">Imagen Principal del Blog (Hero)</h2>
-                    <p className="text-sm text-gray-400">Esta es la imagen de fondo que aparece en la parte superior de la página principal del blog.</p>
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Imagen Principal del Blog</h2>
+                    <p className="text-sm text-slate-500 dark:text-gray-400">Esta es la imagen de fondo que aparece en la parte superior de la página principal del blog.</p>
                     <div className="flex gap-4 mt-4">
                         <input
                             type="file"
@@ -205,7 +205,7 @@ const BlogGestion = () => {
                         <button
                             onClick={() => heroFileInputRef.current?.click()}
                             disabled={uploadingHero}
-                            className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-50"
+                            className="bg-slate-800 dark:bg-gray-800 hover:bg-slate-700 dark:hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-50"
                         >
                             <Upload size={18} />
                             {uploadingHero ? 'Subiendo...' : 'Subir Nueva Imagen'}
@@ -220,24 +220,24 @@ const BlogGestion = () => {
             </div>
 
             {/* Buscador */}
-            <div className="bg-[#1e1e1e] p-4 rounded-xl mb-6">
+            <div className="bg-white dark:bg-[#1e1e1e] p-4 rounded-xl mb-6 border border-slate-200 dark:border-gray-800 shadow-sm">
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-gray-400" size={20} />
                     <input
                         type="text"
                         placeholder="Buscar por título o categoría..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-[#121212] text-white border border-gray-700 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-yellow-400"
+                        className="w-full bg-slate-50 dark:bg-[#121212] text-slate-900 dark:text-white border border-slate-200 dark:border-gray-700 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-yellow-400"
                     />
                 </div>
             </div>
 
             {/* Tabla */}
-            <div className="bg-[#1e1e1e] rounded-xl overflow-hidden">
+            <div className="bg-white dark:bg-[#1e1e1e] rounded-xl overflow-hidden border border-slate-200 dark:border-gray-800 shadow-sm">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-gray-300">
-                        <thead className="bg-[#2d2d2d] text-gray-100 uppercase text-xs">
+                    <table className="w-full text-left text-slate-600 dark:text-gray-300">
+                        <thead className="bg-slate-50 dark:bg-[#2d2d2d] text-slate-800 dark:text-gray-100 uppercase text-xs border-b border-slate-200 dark:border-gray-800">
                             <tr>
                                 <th className="px-6 py-4 font-semibold">Portada</th>
                                 <th className="px-6 py-4 font-semibold">Título</th>
@@ -247,36 +247,36 @@ const BlogGestion = () => {
                                 <th className="px-6 py-4 font-semibold text-right">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-800">
+                        <tbody className="divide-y divide-slate-100 dark:divide-gray-800">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-8 text-center text-gray-400">
+                                    <td colSpan="6" className="px-6 py-8 text-center text-slate-400 dark:text-gray-400">
                                         Cargando posts...
                                     </td>
                                 </tr>
                             ) : filteredPosts.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-8 text-center text-gray-400">
+                                    <td colSpan="6" className="px-6 py-8 text-center text-slate-400 dark:text-gray-400">
                                         No se encontraron posts
                                     </td>
                                 </tr>
                             ) : (
                                 filteredPosts.map(post => (
-                                    <tr key={post.id} className="hover:bg-[#252525] transition-colors">
+                                    <tr key={post.id} className="hover:bg-slate-50 dark:hover:bg-[#252525] transition-colors">
                                         <td className="px-6 py-4">
                                             {post.cover_image ? (
                                                 <img src={post.cover_image} alt={post.title} className="w-16 h-10 object-cover rounded" />
                                             ) : (
-                                                <div className="w-16 h-10 bg-gray-800 rounded flex items-center justify-center">
-                                                    <ImageIcon size={16} className="text-gray-500" />
+                                                <div className="w-16 h-10 bg-slate-100 dark:bg-gray-800 rounded flex items-center justify-center">
+                                                    <ImageIcon size={16} className="text-slate-400 dark:text-gray-500" />
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 font-medium text-white max-w-[200px] truncate" title={post.title}>
+                                        <td className="px-6 py-4 font-medium text-slate-900 dark:text-white max-w-[200px] truncate" title={post.title}>
                                             {post.title}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="bg-[#2d2d2d] text-yellow-500 px-2 py-1 rounded text-xs font-medium">
+                                            <span className="bg-slate-100 dark:bg-[#2d2d2d] text-yellow-600 dark:text-yellow-500 px-2 py-1 rounded text-xs font-medium">
                                                 {post.category}
                                             </span>
                                         </td>
