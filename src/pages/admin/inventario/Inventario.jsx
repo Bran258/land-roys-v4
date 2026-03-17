@@ -62,7 +62,7 @@ const MotoRow = ({ moto, onEdit, onDelete, estadoClass }) => (
       <p className="text-xs text-gray-400">ID: {moto.id}</p>
     </div>
     <p className="text-[#334b68] text-sm">{moto.anio || "-"} / {moto.cilindrada_cc || "-"}</p>
-    <p className="text-green-600 text-lg font-bold">${Number(moto.precio || 0).toLocaleString()}</p>
+    <p className="text-green-600 text-lg font-bold">S/. {Number(moto.precio || 0).toLocaleString()}</p>
     <span className={`inline-flex w-fit px-3 py-1 rounded-full font-bold text-[11px] uppercase ${estadoClass[(moto.estado || "disponible").toLowerCase()] || "bg-gray-100 text-gray-600"}`}>
       {(moto.estado || "disponible").toUpperCase()}
     </span>
@@ -1000,12 +1000,12 @@ const Inventario = () => {
       ficha_tecnica_url: normalizeStorageUrl(form.ficha_tecnica_url) || null,
       galeria_destacada: form.galeria_activa
         ? form.galeria_destacada
-        .filter((item) => item.imagen_url && isValidUrl(item.imagen_url))
-        .map((item) => ({
-          imagen_url: normalizeStorageUrl(item.imagen_url.trim()),
-          titulo: item.titulo?.trim() || "",
-          descripcion: item.descripcion?.trim() || "",
-        }))
+          .filter((item) => item.imagen_url && isValidUrl(item.imagen_url))
+          .map((item) => ({
+            imagen_url: normalizeStorageUrl(item.imagen_url.trim()),
+            titulo: item.titulo?.trim() || "",
+            descripcion: item.descripcion?.trim() || "",
+          }))
         : [],
     };
 
@@ -1281,7 +1281,7 @@ const Inventario = () => {
               ? `La categoría se creó, pero no se encontró el bucket "${bucketName}". Verifica VITE_SUPABASE_INVENTARIO_BUCKET.`
               : isStoragePermissionError(folderError)
                 ? "La categoría se creó, pero tu política de Storage (RLS) no permite crear carpetas desde el cliente."
-              : "La categoría se creó, pero no se pudo crear su carpeta en Storage.",
+                : "La categoría se creó, pero no se pudo crear su carpeta en Storage.",
             "warning"
           );
         }
@@ -1347,7 +1347,7 @@ const Inventario = () => {
               ? `La categoría se creó, pero no se encontró el bucket "${bucketName}". Verifica VITE_SUPABASE_INVENTARIO_BUCKET.`
               : isStoragePermissionError(folderError)
                 ? "La categoría se creó, pero tu política de Storage (RLS) no permite crear carpetas desde el cliente."
-              : "La categoría se creó, pero no se pudo crear su carpeta en Storage.",
+                : "La categoría se creó, pero no se pudo crear su carpeta en Storage.",
             "warning"
           );
         }
@@ -1590,9 +1590,8 @@ const Inventario = () => {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 ${
-                active ? "bg-yellow-400 text-black" : "bg-gray-100 text-gray-600"
-              }`}
+              className={`px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 ${active ? "bg-yellow-400 text-black" : "bg-gray-100 text-gray-600"
+                }`}
             >
               <Icon size={16} /> {tab.label}
             </button>
@@ -1624,9 +1623,8 @@ const Inventario = () => {
                       }
                     }
                   }}
-                  className={`group relative px-4 py-2 rounded-full text-xs font-bold inline-flex items-center gap-2 cursor-pointer ${
-                    active ? "bg-yellow-400 text-black" : "bg-gray-100 text-gray-600"
-                  }`}
+                  className={`group relative px-4 py-2 rounded-full text-xs font-bold inline-flex items-center gap-2 cursor-pointer ${active ? "bg-yellow-400 text-black" : "bg-gray-100 text-gray-600"
+                    }`}
                 >
                   <span>
                     {cat === "all"
@@ -1664,7 +1662,7 @@ const Inventario = () => {
                 </div>
               );
             })}
-        </div>
+          </div>
 
           {activeTab === "motos" ? (
             <button
@@ -1704,18 +1702,16 @@ const Inventario = () => {
                     <button
                       type="button"
                       onClick={() => setIsCreatingMotoType(false)}
-                      className={`px-3 py-1.5 rounded-full ${
-                        !isCreatingMotoType ? "bg-slate-900 text-white" : "bg-gray-100 text-gray-500"
-                      }`}
+                      className={`px-3 py-1.5 rounded-full ${!isCreatingMotoType ? "bg-slate-900 text-white" : "bg-gray-100 text-gray-500"
+                        }`}
                     >
                       Subcategoría
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsCreatingMotoType(true)}
-                      className={`px-3 py-1.5 rounded-full ${
-                        isCreatingMotoType ? "bg-yellow-400 text-black" : "bg-gray-100 text-gray-500"
-                      }`}
+                      className={`px-3 py-1.5 rounded-full ${isCreatingMotoType ? "bg-yellow-400 text-black" : "bg-gray-100 text-gray-500"
+                        }`}
                     >
                       Tipo principal
                     </button>
@@ -1922,18 +1918,16 @@ const Inventario = () => {
                     <button
                       type="button"
                       onClick={() => setIsCreatingRepuestoType(false)}
-                      className={`px-3 py-1.5 rounded-full ${
-                        !isCreatingRepuestoType ? "bg-slate-900 text-white" : "bg-gray-100 text-gray-500"
-                      }`}
+                      className={`px-3 py-1.5 rounded-full ${!isCreatingRepuestoType ? "bg-slate-900 text-white" : "bg-gray-100 text-gray-500"
+                        }`}
                     >
                       Subcategoría
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsCreatingRepuestoType(true)}
-                      className={`px-3 py-1.5 rounded-full ${
-                        isCreatingRepuestoType ? "bg-yellow-400 text-black" : "bg-gray-100 text-gray-500"
-                      }`}
+                      className={`px-3 py-1.5 rounded-full ${isCreatingRepuestoType ? "bg-yellow-400 text-black" : "bg-gray-100 text-gray-500"
+                        }`}
                     >
                       Tipo principal
                     </button>
@@ -2328,9 +2322,8 @@ const Inventario = () => {
                 <button
                   type="button"
                   onClick={handleVideoToggle}
-                  className={`px-4 py-2 rounded-full text-xs font-bold ${
-                    form.video_activo ? "bg-yellow-400 text-black" : "bg-gray-200 text-gray-500"
-                  }`}
+                  className={`px-4 py-2 rounded-full text-xs font-bold ${form.video_activo ? "bg-yellow-400 text-black" : "bg-gray-200 text-gray-500"
+                    }`}
                 >
                   {form.video_activo ? "Video activo" : "Sin video"}
                 </button>
@@ -2372,9 +2365,8 @@ const Inventario = () => {
                 <button
                   type="button"
                   onClick={handleGaleriaToggle}
-                  className={`px-4 py-2 rounded-xl text-sm font-bold transition ${
-                    form.galeria_activa ? "bg-yellow-400 text-black" : "bg-gray-200 text-gray-500"
-                  }`}
+                  className={`px-4 py-2 rounded-xl text-sm font-bold transition ${form.galeria_activa ? "bg-yellow-400 text-black" : "bg-gray-200 text-gray-500"
+                    }`}
                 >
                   {form.galeria_activa ? "Galería activa" : "Sin galería"}
                 </button>

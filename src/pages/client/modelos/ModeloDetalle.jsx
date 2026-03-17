@@ -6,9 +6,9 @@ import { getMotoById } from "../../../services/motos.service";
 import { resolveFichaTecnicaUrl } from "../../../util/fichaTecnica";
 import { createSolicitud } from "../../../services/Solicitudes.service";
 
-const currency = new Intl.NumberFormat("en-US", {
+const currency = new Intl.NumberFormat("es-PE", {
   style: "currency",
-  currency: "USD",
+  currency: "PEN",
   maximumFractionDigits: 0,
 });
 

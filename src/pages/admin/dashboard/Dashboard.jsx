@@ -144,9 +144,9 @@ const Dashboard = () => {
     </div>
   );
 
-  const currency = new Intl.NumberFormat("en-US", {
+  const currency = new Intl.NumberFormat("es-PE", {
     style: "currency",
-    currency: "USD",
+    currency: "PEN",
     maximumFractionDigits: 0
   });
 
@@ -301,7 +301,7 @@ const Dashboard = () => {
                     axisLine={false}
                     tickLine={false}
                     tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                    tickFormatter={(value) => `$${value / 1000}k`}
+                    tickFormatter={(value) => `S/.${value / 1000}k`}
                   />
                   <Tooltip content={<DashboardTooltip currencyFormatter={currency} />} />
                   <Area

@@ -28,8 +28,6 @@ const Home_secciones = lazy(() => import("./pages/admin/home_secciones/Home_secc
 const Ranking = lazy(() => import("./components/admin/home_secciones/Ranking"));
 const Ofertas = lazy(() => import("./components/admin/home_secciones/Ofertas"));
 const Experiencia = lazy(() => import("./components/admin/home_secciones/Experiencia"));
-const Inventarios = lazy(() => import("./pages/admin/inventarios/Inventarios"));
-const GestionInventarioMoto = lazy(() => import("./components/admin/inventarios/motos/GestionInventarioMoto"));
 const Inventario = lazy(() => import("./pages/admin/inventario/Inventario"));
 const Ventas = lazy(() => import("./pages/admin/ventas/Ventas"));
 const Reportes = lazy(() => import("./pages/admin/reportes/Reportes"));
@@ -88,10 +86,7 @@ function App() {
                   <Route path="experiencia" element={<Experiencia />} />
                 </Route>
 
-                {/* Inventarios como padre */}
-                <Route path="inventarios" element={<Inventarios />}>
-                  <Route path="gestion_motos" element={<GestionInventarioMoto />} />
-                </Route>
+
               </Route>
             </Routes>
           </Suspense>

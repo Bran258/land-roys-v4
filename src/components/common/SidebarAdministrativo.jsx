@@ -36,11 +36,6 @@ const SidebarAdministrativo = () => {
             path: "/admin/home_secciones",
         },
         {
-            icon: <ChartArea size={22} />,
-            label: "Reporte Invetarios",
-            path: "/admin/inventarios",
-        },
-        {
             icon: <Box size={22} />,
             label: "Inventario",
             path: "/admin/inventario",

@@ -118,7 +118,7 @@ const Clientes = () => {
 
             // Format Notes with Discount Info
             const discountNote = saleForm.discountValue > 0
-                ? ` [Descuento: ${saleForm.discountType === 'percent' ? saleForm.discountValue + '%' : '$' + saleForm.discountValue} (-$${discountAmount}). Precio Original: $${basePrice}]`
+                ? ` [Descuento: ${saleForm.discountType === 'percent' ? saleForm.discountValue + '%' : 'S/.' + saleForm.discountValue} (-S/.${discountAmount}). Precio Original: S/.${basePrice}]`
                 : "";
 
             const fullNotes = `${saleForm.notas}${discountNote}`;
@@ -137,7 +137,7 @@ const Clientes = () => {
 
             const solicitudPayload = {
                 estado: 'vendido',
-                notas_admin: `Venta cerrada por $${finalPrice}. Producto: ${selectedMoto.nombre}. ${fullNotes}`
+                notas_admin: `Venta cerrada por S/.${finalPrice}. Producto: ${selectedMoto.nombre}. ${fullNotes}`
             };
 
             await closeSaleTransaction({
@@ -405,7 +405,7 @@ const Clientes = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Precio Base ($)</label>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Precio Base (S/.)</label>
                                     <div className="relative">
                                         <DollarSign className="absolute left-3 top-3 text-gray-400" size={18} />
                                         <input
@@ -449,7 +449,7 @@ const Clientes = () => {
                                             onClick={() => setSaleForm({ ...saleForm, discountType: 'fixed' })}
                                             className={`px-3 py-1 rounded-md text-sm font-bold transition-all ${saleForm.discountType === 'fixed' ? 'bg-black text-white shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
                                         >
-                                            $
+                                            S/.
                                         </button>
                                     </div>
                                     <div className="relative flex-1">

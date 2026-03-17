@@ -6,9 +6,9 @@ import { getMotos } from "../../../services/motos.service";
 import { getCategoriasMotos } from "../../../services/CategoriasMotos.service";
 import { resolveFichaTecnicaUrl } from "../../../util/fichaTecnica";
 
-const currency = new Intl.NumberFormat("en-US", {
+const currency = new Intl.NumberFormat("es-PE", {
   style: "currency",
-  currency: "USD",
+  currency: "PEN",
   maximumFractionDigits: 0,
 });
 

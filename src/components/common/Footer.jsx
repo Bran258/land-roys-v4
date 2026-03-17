@@ -43,7 +43,6 @@ const Footer = () => {
                         <ul className="space-y-4">
                             <li><Link to="/nosotros" className="text-gray-500 hover:text-white text-sm transition-colors">Sobre Nosotros</Link></li>
                             <li><Link to="/modelos" className="text-gray-500 hover:text-white text-sm transition-colors">Nuestros Modelos</Link></li>
-                            <li><Link to="/servicio-tecnico" className="text-gray-500 hover:text-white text-sm transition-colors">Servicio Técnico</Link></li>
                             <li><Link to="/blog" className="text-gray-500 hover:text-white text-sm transition-colors">Blog</Link></li>
                         </ul>
                     </div>
@@ -53,8 +52,8 @@ const Footer = () => {
                         <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6">Soporte</h3>
                         <ul className="space-y-4">
                             <li><Link to="/faq" className="text-gray-500 hover:text-white text-sm transition-colors">Preguntas Frecuentes</Link></li>
-                            <li><Link to="/garantia" className="text-gray-500 hover:text-white text-sm transition-colors">Garantía</Link></li>
                             <li><Link to="/repuestos" className="text-gray-500 hover:text-white text-sm transition-colors">Repuestos</Link></li>
+    
                             <li><Link to="/contacto" className="text-gray-500 hover:text-white text-sm transition-colors">Contacto</Link></li>
                         </ul>
                     </div>

@@ -27,9 +27,9 @@ const Ventas = () => {
         fetchVentas();
     }, []);
 
-    const currency = new Intl.NumberFormat("en-US", {
+    const currency = new Intl.NumberFormat("es-PE", {
         style: "currency",
-        currency: "USD",
+        currency: "PEN",
         maximumFractionDigits: 0
     });
 

@@ -4,9 +4,9 @@ import Swal from "sweetalert2";
 import { getRepuestos } from "../../../services/Repuestos.service";
 import { getCategoriasRepuestos } from "../../../services/CategoriasRepuestos.service";
 
-const currency = new Intl.NumberFormat("es-CO", {
+const currency = new Intl.NumberFormat("es-PE", {
   style: "currency",
-  currency: "USD",
+  currency: "PEN",
   maximumFractionDigits: 0,
 });
 
