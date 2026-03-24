@@ -112,6 +112,11 @@ const initialRepuestoForm = {
   stock: "",
   estado: "disponible",
   imagen_url: "",
+  unidad_medida: "",
+  modelo: "",
+  cantidad_por_paquete: "",
+  marca_logo_url: "",
+  galeria_imagenes: [],
 };
 
 const initialCategoriaForm = {
@@ -132,12 +137,18 @@ const tabs = [
 ];
 
 const buildRepuestoCategoryLabel = (categorias, categoriaId, fallback = "Otros") => {
-  const categoria = categorias.find((item) => item.id === categoriaId);
-  if (!categoria) return fallback;
-  const parent = categoria.parent_id
-    ? categorias.find((item) => item.id === categoria.parent_id)
-    : null;
-  return parent ? `${parent.nombre} / ${categoria.nombre}` : categoria.nombre;
+  const byId = categorias.reduce((acc, item) => {
+    acc[item.id] = item;
+    return acc;
+  }, {});
+  let current = byId[categoriaId];
+  if (!current) return fallback;
+  const trail = [];
+  while (current) {
+    trail.unshift(current.nombre);
+    current = current.parent_id ? byId[current.parent_id] : null;
+  }
+  return trail.join(" / ");
 };
 
 const findMotoCategoriaByName = (categorias, nombre) =>
@@ -315,6 +326,7 @@ const Inventario = () => {
   const [isCreatingRepuestoType, setIsCreatingRepuestoType] = useState(false);
   const [repuestoTipoId, setRepuestoTipoId] = useState("");
   const [repuestoSubcategoriaId, setRepuestoSubcategoriaId] = useState("");
+  const [repuestoSubsubcategoriaId, setRepuestoSubsubcategoriaId] = useState("");
   const [categoriasMotos, setCategoriasMotos] = useState([]);
   const [_categoriasMotosLoaded, setCategoriasMotosLoaded] = useState(false);
   const [categoriasRepuestosLoaded, setCategoriasRepuestosLoaded] = useState(false);
@@ -473,19 +485,32 @@ const Inventario = () => {
     return repuestoSubcategoriasPorTipo[repuestoTipoId] || [];
   }, [repuestoTipoId, repuestoSubcategoriasPorTipo]);
 
+  const repuestoSubsubcategoriasVisibles = useMemo(() => {
+    if (!repuestoSubcategoriaId) return [];
+    return categoriasRepuestos.filter((categoria) => categoria.parent_id === repuestoSubcategoriaId);
+  }, [categoriasRepuestos, repuestoSubcategoriaId]);
+
   const repuestoCategorias = useMemo(() => ["all", ...repuestoTipos.map((cat) => cat.id)], [repuestoTipos]);
+
+  const getRepuestoDescendantIds = (rootId) => {
+    const descendants = [];
+    const walk = (parentId) => {
+      const children = categoriasRepuestos.filter((categoria) => categoria.parent_id === parentId);
+      children.forEach((child) => {
+        descendants.push(child.id);
+        walk(child.id);
+      });
+    };
+    walk(rootId);
+    return descendants;
+  };
 
   const repuestosFiltrados = useMemo(() => {
     if (repuestoFiltroCategoria === "all") return repuestos;
 
-    const children = repuestoSubcategoriasPorTipo[repuestoFiltroCategoria] || [];
-    if (children.length === 0) {
-      return repuestos.filter((r) => (r.categoria_parent_id || r.categoria_id) === repuestoFiltroCategoria);
-    }
-
-    const childrenIds = new Set(children.map((child) => child.id));
-    return repuestos.filter((r) => childrenIds.has(r.categoria_id));
-  }, [repuestos, repuestoFiltroCategoria, repuestoSubcategoriasPorTipo]);
+    const validIds = new Set([repuestoFiltroCategoria, ...getRepuestoDescendantIds(repuestoFiltroCategoria)]);
+    return repuestos.filter((r) => validIds.has(r.categoria_id) || validIds.has(r.categoria_parent_id));
+  }, [repuestos, repuestoFiltroCategoria, categoriasRepuestos]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -594,12 +619,20 @@ const Inventario = () => {
   const handleRepuestoTipoChange = (tipoId) => {
     setRepuestoTipoId(tipoId);
     setRepuestoSubcategoriaId("");
+    setRepuestoSubsubcategoriaId("");
     setRepuestoForm((prev) => ({ ...prev, categoria_id: tipoId || "" }));
   };
 
   const handleRepuestoSubcategoriaChange = (subcategoriaId) => {
     setRepuestoSubcategoriaId(subcategoriaId);
+    setRepuestoSubsubcategoriaId("");
     const selected = subcategoriaId || repuestoTipoId || "";
+    setRepuestoForm((prev) => ({ ...prev, categoria_id: selected }));
+  };
+
+  const handleRepuestoSubsubcategoriaChange = (subsubcategoriaId) => {
+    setRepuestoSubsubcategoriaId(subsubcategoriaId);
+    const selected = subsubcategoriaId || repuestoSubcategoriaId || repuestoTipoId || "";
     setRepuestoForm((prev) => ({ ...prev, categoria_id: selected }));
   };
 
@@ -661,6 +694,7 @@ const Inventario = () => {
     setRepuestoModalOpen(false);
     setRepuestoTipoId("");
     setRepuestoSubcategoriaId("");
+    setRepuestoSubsubcategoriaId("");
     setRepuestoImageFile(null);
     setRepuestoImagePreview("");
     setRepuestoImageUrlError("");
@@ -702,6 +736,7 @@ const Inventario = () => {
     });
     setRepuestoTipoId(defaultTipo);
     setRepuestoSubcategoriaId(defaultSubcategoria?.id || "");
+    setRepuestoSubsubcategoriaId("");
     setRepuestoModalOpen(true);
     setRepuestoImageFile(null);
     setRepuestoImagePreview("");
@@ -779,7 +814,10 @@ const Inventario = () => {
       categoriasRepuestos.find((categoria) => categoria.nombre === repuesto.categoria)?.id ||
       "";
     const categoriaMatch = categoriasRepuestos.find((categoria) => categoria.id === categoriaId);
-    const tipoId = categoriaMatch?.parent_id || (categoriaMatch ? categoriaMatch.id : "");
+    const parentCategoria = categoriaMatch?.parent_id
+      ? categoriasRepuestos.find((categoria) => categoria.id === categoriaMatch.parent_id)
+      : null;
+    const tipoId = parentCategoria?.parent_id || categoriaMatch?.parent_id || (categoriaMatch ? categoriaMatch.id : "");
     setRepuestoEditingId(repuesto.id);
     setRepuestoForm({
       nombre: repuesto.nombre || "",
@@ -789,9 +827,15 @@ const Inventario = () => {
       stock: String(repuesto.stock ?? ""),
       estado: repuesto.estado || "disponible",
       imagen_url: repuesto.imagen_url || "",
+      unidad_medida: repuesto.unidad_medida || "",
+      modelo: repuesto.modelo || "",
+      cantidad_por_paquete: String(repuesto.cantidad_por_paquete ?? ""),
+      marca_logo_url: repuesto.marca_logo_url || "",
+      galeria_imagenes: Array.isArray(repuesto.galeria_imagenes) ? repuesto.galeria_imagenes : [],
     });
     setRepuestoTipoId(tipoId || "");
-    setRepuestoSubcategoriaId(categoriaMatch?.parent_id ? categoriaMatch.id : "");
+    setRepuestoSubcategoriaId(parentCategoria?.parent_id ? parentCategoria.id : categoriaMatch?.parent_id ? categoriaMatch.id : "");
+    setRepuestoSubsubcategoriaId(parentCategoria?.parent_id ? categoriaMatch?.id || "" : "");
     setRepuestoImagePreview(repuesto.imagen_url || "");
     setRepuestoImageFile(null);
     setRepuestoImageUrlError("");
@@ -1107,7 +1151,7 @@ const Inventario = () => {
   const handleRepuestoSubmit = async (e) => {
     e.preventDefault();
 
-    const selectedCategoriaId = repuestoSubcategoriaId || repuestoTipoId || repuestoForm.categoria_id;
+    const selectedCategoriaId = repuestoSubsubcategoriaId || repuestoSubcategoriaId || repuestoTipoId || repuestoForm.categoria_id;
 
     if (!repuestoForm.nombre.trim() || !selectedCategoriaId) {
       Swal.fire("Validación", "Nombre y categoría son obligatorios", "warning");
@@ -1119,15 +1163,18 @@ const Inventario = () => {
       return;
     }
 
+    const selectedSubsubcategoria = repuestoSubsubcategoriaId
+      ? categoriasRepuestos.find((categoria) => categoria.id === repuestoSubsubcategoriaId)
+      : null;
     const selectedSubcategoria = repuestoSubcategoriaId
       ? categoriasRepuestos.find((categoria) => categoria.id === repuestoSubcategoriaId)
       : null;
     const selectedTipo = repuestoTipoId
       ? categoriasRepuestos.find((categoria) => categoria.id === repuestoTipoId)
       : null;
-    const selectedCategoria = selectedSubcategoria || selectedTipo;
+    const selectedCategoria = selectedSubsubcategoria || selectedSubcategoria || selectedTipo;
     const tipoNombre = selectedTipo?.nombre || selectedCategoria?.nombre || "sin-tipo";
-    const subcategoriaNombre = selectedSubcategoria?.nombre || selectedTipo?.nombre || "sin-subcategoria";
+    const subcategoriaNombre = selectedSubsubcategoria?.nombre || selectedSubcategoria?.nombre || selectedTipo?.nombre || "sin-subcategoria";
     const repuestoSlug = slugifySegment(repuestoForm.nombre, "repuesto");
 
     if (!selectedCategoria) {
@@ -1144,10 +1191,20 @@ const Inventario = () => {
       stock: Number(repuestoForm.stock),
       estado: repuestoForm.estado,
       imagen_url: repuestoForm.imagen_url.trim() || null,
+      unidad_medida: repuestoForm.unidad_medida.trim() || null,
+      modelo: repuestoForm.modelo.trim() || null,
+      cantidad_por_paquete: repuestoForm.cantidad_por_paquete ? Number(repuestoForm.cantidad_por_paquete) : null,
+      marca_logo_url: repuestoForm.marca_logo_url.trim() || null,
+      galeria_imagenes: (repuestoForm.galeria_imagenes || []).filter(Boolean),
     };
 
     if (Number.isNaN(payload.precio) || Number.isNaN(payload.stock)) {
       Swal.fire("Validación", "Precio y stock deben ser números válidos", "warning");
+      return;
+    }
+
+    if (payload.cantidad_por_paquete !== null && Number.isNaN(payload.cantidad_por_paquete)) {
+      Swal.fire("Validación", "La cantidad por paquete debe ser un número válido", "warning");
       return;
     }
 
@@ -1158,7 +1215,7 @@ const Inventario = () => {
         const publicUrl = await uploadRepuestoImage(repuestoImageFile, {
           categoriaPadreId: selectedTipo?.id || selectedCategoria?.id,
           categoriaPadreNombre: tipoNombre,
-          subcategoriaId: selectedSubcategoria?.id || selectedTipo?.id,
+          subcategoriaId: selectedSubsubcategoria?.id || selectedSubcategoria?.id || selectedTipo?.id,
           subcategoriaNombre,
           repuestoId: repuestoEditingId,
           repuestoSlug,
@@ -1531,6 +1588,40 @@ const Inventario = () => {
       console.error(error);
       Swal.fire("Error", "No se pudo eliminar la categoría", "error");
     }
+  };
+
+  const renderRepuestoCategoryNode = (categoria, level = 0) => {
+    const children = categoriasRepuestos.filter((item) => item.parent_id === categoria.id);
+
+    return (
+      <div key={categoria.id} className={`rounded-xl border border-gray-100 ${level === 0 ? "bg-gray-50 p-4 space-y-3" : "bg-white px-3 py-2"}`} style={level > 0 ? { marginLeft: `${Math.min(level, 3) * 12}px` } : undefined}>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-bold text-slate-800">{categoria.nombre}</p>
+            <p className="text-[11px] text-gray-400">{buildRepuestoCategoryLabel(categoriasRepuestos, categoria.id, categoria.nombre)}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${categoria.estado ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-500"}`}>
+              {categoria.estado ? "Activa" : "Inactiva"}
+            </span>
+            <button type="button" onClick={() => handleCategoriaCreateChild(categoria)} className="px-3 py-1.5 text-xs font-bold rounded-full bg-yellow-400 text-black">
+              + Hija
+            </button>
+            <button type="button" onClick={() => handleCategoriaEdit(categoria)} className="p-1.5 rounded-lg border border-blue-200 text-blue-600">
+              <Pencil size={12} />
+            </button>
+            <button type="button" onClick={() => handleDeleteCategoria(categoria.id)} className="p-1.5 rounded-lg border border-red-200 text-red-500">
+              <Trash2 size={12} />
+            </button>
+          </div>
+        </div>
+        {children.length > 0 && (
+          <div className="space-y-2 pl-2 border-l-2 border-yellow-200">
+            {children.map((child) => renderRepuestoCategoryNode(child, level + 1))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   const RepuestoHeader = () => (
@@ -1908,7 +1999,7 @@ const Inventario = () => {
                     name="nombre"
                     value={categoriaForm.nombre}
                     onChange={handleCategoriaChange}
-                    placeholder={isCreatingRepuestoType ? "Ej. Motor" : "Ej. Filtros"}
+                    placeholder={isCreatingRepuestoType ? "Ej. Motor" : "Ej. Filtros / Suspensión / Delantera"}
                     className="mt-2 w-full border rounded-xl px-3 py-2 bg-white"
                   />
                 </div>
@@ -1933,7 +2024,7 @@ const Inventario = () => {
                     </button>
                   </div>
                   <label className="text-sm font-semibold text-gray-700 block mt-3">
-                    {isCreatingRepuestoType ? "Tipo" : "Asignar tipo"}
+                    {isCreatingRepuestoType ? "Categoría principal" : "Asignar categoría padre"}
                   </label>
                   <select
                     name="parent_id"
@@ -1943,17 +2034,19 @@ const Inventario = () => {
                     className="mt-2 w-full border rounded-xl px-3 py-2 bg-white disabled:bg-gray-100 disabled:text-gray-400"
                   >
                     <option value="">
-                      {isCreatingRepuestoType ? "Se creará como tipo principal" : "Selecciona un tipo"}
+                      {isCreatingRepuestoType ? "Se creará como categoría principal" : "Selecciona la categoría padre"}
                     </option>
-                    {repuestoTipos.map((tipo) => (
-                      <option key={tipo.id} value={tipo.id}>
-                        {tipo.nombre}
-                      </option>
-                    ))}
+                    {categoriasRepuestos
+                      .filter((categoria) => categoria.id !== categoriaEditingId)
+                      .map((categoria) => (
+                        <option key={categoria.id} value={categoria.id}>
+                          {buildRepuestoCategoryLabel(categoriasRepuestos, categoria.id, categoria.nombre)}
+                        </option>
+                      ))}
                   </select>
-                  {!isCreatingRepuestoType && repuestoTipos.length === 0 && (
+                  {!isCreatingRepuestoType && categoriasRepuestos.length === 0 && (
                     <p className="text-xs text-gray-500 mt-2">
-                      Crea un tipo principal primero para asignar subcategorías.
+                      Crea una categoría principal primero para asignar subcategorías o subsubcategorías.
                     </p>
                   )}
                 </div>
@@ -1993,59 +2086,7 @@ const Inventario = () => {
                   {categoriasRepuestos.length === 0 ? (
                     <p className="text-sm text-gray-500">No hay categorías registradas.</p>
                   ) : (
-                    repuestoTipos.map((tipo) => (
-                      <div key={tipo.id} className="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-3">
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-bold text-slate-800">{tipo.nombre}</p>
-                            <p className="text-xs text-gray-400">ID: {tipo.id}</p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className={`text-xs font-bold px-2 py-1 rounded-full ${tipo.estado ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-500"}`}>
-                              {tipo.estado ? "Activa" : "Inactiva"}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleCategoriaCreateChild(tipo)}
-                              className="px-3 py-1.5 text-xs font-bold rounded-full bg-yellow-400 text-black"
-                            >
-                              + Subcategoría
-                            </button>
-                            <button type="button" onClick={() => handleCategoriaEdit(tipo)} className="p-2 rounded-lg border border-blue-200 text-blue-600">
-                              <Pencil size={14} />
-                            </button>
-                            <button type="button" onClick={() => handleDeleteCategoria(tipo.id)} className="p-2 rounded-lg border border-red-200 text-red-500">
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </div>
-                        <div className="space-y-2 pl-2 border-l-2 border-yellow-200">
-                          {(repuestoSubcategoriasPorTipo[tipo.id] || []).length === 0 ? (
-                            <p className="text-xs text-gray-400">Sin subcategorías.</p>
-                          ) : (
-                            (repuestoSubcategoriasPorTipo[tipo.id] || []).map((categoria) => (
-                              <div key={categoria.id} className="flex items-center justify-between gap-3 bg-white rounded-lg px-3 py-2">
-                                <div>
-                                  <p className="text-xs font-semibold text-slate-700">{categoria.nombre}</p>
-                                  <p className="text-[11px] text-gray-400">ID: {categoria.id}</p>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${categoria.estado ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-500"}`}>
-                                    {categoria.estado ? "Activa" : "Inactiva"}
-                                  </span>
-                                  <button type="button" onClick={() => handleCategoriaEdit(categoria)} className="p-1.5 rounded-lg border border-blue-200 text-blue-600">
-                                    <Pencil size={12} />
-                                  </button>
-                                  <button type="button" onClick={() => handleDeleteCategoria(categoria.id)} className="p-1.5 rounded-lg border border-red-200 text-red-500">
-                                    <Trash2 size={12} />
-                                  </button>
-                                </div>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      </div>
-                    ))
+                    repuestoTipos.map((tipo) => renderRepuestoCategoryNode(tipo))
                   )}
                 </div>
               </div>
@@ -2547,13 +2588,13 @@ const Inventario = () => {
                 <input name="nombre" value={repuestoForm.nombre} onChange={handleRepuestoChange} placeholder="Ej. Filtro de Aceite" className="mt-2 w-full border rounded-xl px-3 py-2 bg-gray-50" />
               </div>
               <div>
-                <label className="text-sm font-semibold text-gray-700">Tipo</label>
+                <label className="text-sm font-semibold text-gray-700">Categoría principal</label>
                 <select
                   value={repuestoTipoId}
                   onChange={(event) => handleRepuestoTipoChange(event.target.value)}
                   className="mt-2 w-full border rounded-xl px-3 py-2 bg-gray-50"
                 >
-                  <option value="">Selecciona un tipo</option>
+                  <option value="">Selecciona una categoría principal</option>
                   {repuestoTipos.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.nombre}
@@ -2569,8 +2610,24 @@ const Inventario = () => {
                   disabled={!repuestoTipoId}
                   className="mt-2 w-full border rounded-xl px-3 py-2 bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
                 >
-                  <option value="">Sin subcategoría (usar tipo)</option>
+                  <option value="">Sin subcategoría</option>
                   {repuestoSubcategoriasVisibles.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-gray-700">Subsubcategoría</label>
+                <select
+                  value={repuestoSubsubcategoriaId}
+                  onChange={(event) => handleRepuestoSubsubcategoriaChange(event.target.value)}
+                  disabled={!repuestoSubcategoriaId}
+                  className="mt-2 w-full border rounded-xl px-3 py-2 bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
+                >
+                  <option value="">Sin subsubcategoría</option>
+                  {repuestoSubsubcategoriasVisibles.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.nombre}
                     </option>
@@ -2589,18 +2646,46 @@ const Inventario = () => {
                   <option value="agotado">Agotado</option>
                 </select>
               </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-semibold text-gray-700">Stock</label>
                 <input name="stock" value={repuestoForm.stock} onChange={handleRepuestoChange} placeholder="0" type="number" className="mt-2 w-full border rounded-xl px-3 py-2 bg-gray-50" />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-gray-700">Unidad de medida</label>
+                <input name="unidad_medida" value={repuestoForm.unidad_medida} onChange={handleRepuestoChange} placeholder="Ej. unidad, caja, juego" className="mt-2 w-full border rounded-xl px-3 py-2 bg-gray-50" />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-gray-700">Modelo</label>
+                <input name="modelo" value={repuestoForm.modelo} onChange={handleRepuestoChange} placeholder="Ej. XR 150 / Pulsar NS 200" className="mt-2 w-full border rounded-xl px-3 py-2 bg-gray-50" />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-gray-700">Cantidad por paquete</label>
+                <input name="cantidad_por_paquete" value={repuestoForm.cantidad_por_paquete} onChange={handleRepuestoChange} placeholder="Ej. 4" type="number" min="1" className="mt-2 w-full border rounded-xl px-3 py-2 bg-gray-50" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="text-sm font-semibold text-gray-700">Logo / imagen de marca (URL)</label>
+                <input name="marca_logo_url" value={repuestoForm.marca_logo_url} onChange={handleRepuestoChange} placeholder="https://..." className="mt-2 w-full border rounded-xl px-3 py-2 bg-gray-50" />
               </div>
             </div>
 
             <div>
               <label className="text-sm font-semibold text-gray-700">Descripción</label>
               <textarea name="descripcion" value={repuestoForm.descripcion} onChange={handleRepuestoChange} placeholder="Detalles del repuesto..." rows={4} className="mt-2 w-full border rounded-xl px-3 py-2 bg-gray-50 resize-none" />
+            </div>
+
+            <div>
+              <label className="text-sm font-semibold text-gray-700">Carrusel de imágenes (1 URL por línea)</label>
+              <textarea
+                value={(repuestoForm.galeria_imagenes || []).join("\n")}
+                onChange={(event) => setRepuestoForm((prev) => ({
+                  ...prev,
+                  galeria_imagenes: event.target.value.split("\n").map((item) => item.trim()).filter(Boolean),
+                }))}
+                placeholder="https://...\nhttps://..."
+                rows={4}
+                className="mt-2 w-full border rounded-xl px-3 py-2 bg-gray-50 resize-none"
+              />
+              <p className="text-xs text-gray-500 mt-1">Estas imágenes se mostrarán como carrusel en el detalle público del repuesto.</p>
             </div>
 
             <div className="flex items-center justify-end gap-4 pt-2">

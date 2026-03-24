@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import DOMPurify from 'dompurify';
 import { BlogService } from '../../../services/Blog.service';
 import { ArrowLeft } from 'lucide-react';
@@ -30,6 +29,62 @@ const BlogPost = () => {
         fetchPost();
     }, [slug, navigate]);
 
+    const defaultImage = "https://images.unsplash.com/photo-1558981806-ec527fa84c39?q=80&w=2070&auto=format&fit=crop";
+    const date = post?.created_at
+        ? new Date(post.created_at).toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric'
+        })
+        : '';
+
+    const sanitizedContent = DOMPurify.sanitize(post?.content || '');
+    const seoDescription = post?.excerpt || (post?.content || '').replace(/<[^>]*>?/gm, '').substring(0, 160);
+
+    useEffect(() => {
+        if (!post) return undefined;
+
+        const previousTitle = document.title;
+        const previousDescription = document.querySelector('meta[name="description"]')?.getAttribute('content') || '';
+        const previousOgTitle = document.querySelector('meta[property="og:title"]')?.getAttribute('content') || '';
+        const previousOgDescription = document.querySelector('meta[property="og:description"]')?.getAttribute('content') || '';
+        const previousOgImage = document.querySelector('meta[property="og:image"]')?.getAttribute('content') || '';
+        const previousOgType = document.querySelector('meta[property="og:type"]')?.getAttribute('content') || '';
+
+        const ensureMeta = (selector, attributes) => {
+            let meta = document.querySelector(selector);
+            if (!meta) {
+                meta = document.createElement('meta');
+                Object.entries(attributes).forEach(([key, value]) => meta.setAttribute(key, value));
+                document.head.appendChild(meta);
+            }
+            return meta;
+        };
+
+        const descriptionMeta = ensureMeta('meta[name="description"]', { name: 'description' });
+        const ogTitleMeta = ensureMeta('meta[property="og:title"]', { property: 'og:title' });
+        const ogDescriptionMeta = ensureMeta('meta[property="og:description"]', { property: 'og:description' });
+        const ogImageMeta = ensureMeta('meta[property="og:image"]', { property: 'og:image' });
+        const ogTypeMeta = ensureMeta('meta[property="og:type"]', { property: 'og:type' });
+
+        document.title = `${post.title} | Land Roys Blog`;
+        descriptionMeta.setAttribute('content', seoDescription);
+        ogTitleMeta.setAttribute('content', `${post.title} | Land Roys`);
+        ogDescriptionMeta.setAttribute('content', seoDescription);
+        ogImageMeta.setAttribute('content', post.cover_image || defaultImage);
+        ogTypeMeta.setAttribute('content', 'article');
+
+        return () => {
+            document.title = previousTitle;
+            descriptionMeta.setAttribute('content', previousDescription);
+            ogTitleMeta.setAttribute('content', previousOgTitle);
+            ogDescriptionMeta.setAttribute('content', previousOgDescription);
+            ogImageMeta.setAttribute('content', previousOgImage);
+            ogTypeMeta.setAttribute('content', previousOgType);
+        };
+    }, [defaultImage, post, seoDescription]);
+
+
     if (loading) {
         return (
             <div className="min-h-screen bg-[#f8f8f5] dark:bg-[#121212] flex justify-center items-center">
@@ -50,28 +105,10 @@ const BlogPost = () => {
         );
     }
 
-    const defaultImage = "https://images.unsplash.com/photo-1558981806-ec527fa84c39?q=80&w=2070&auto=format&fit=crop";
-    const date = new Date(post.created_at).toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric'
-    });
 
-    const sanitizedContent = DOMPurify.sanitize(post.content);
-    const seoDescription = post.excerpt || post.content.replace(/<[^>]*>?/gm, '').substring(0, 160);
 
     return (
         <main className="min-h-screen bg-white dark:bg-[#121212] font-display">
-            {/* Dynamic SEO Meta Tags */}
-            <Helmet>
-                <title>{post.title} | Land Roys Blog</title>
-                <meta name="description" content={seoDescription} />
-                <meta property="og:title" content={`${post.title} | Land Roys`} />
-                <meta property="og:description" content={seoDescription} />
-                <meta property="og:image" content={post.cover_image || defaultImage} />
-                <meta property="og:type" content="article" />
-            </Helmet>
-
             {/* Header Image */}
             <div className="w-full h-[50vh] min-h-[400px] relative">
                 <img
