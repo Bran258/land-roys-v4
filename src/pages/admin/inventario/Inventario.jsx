@@ -151,6 +151,28 @@ const buildRepuestoCategoryLabel = (categorias, categoriaId, fallback = "Otros")
   return trail.join(" / ");
 };
 
+const buildRepuestoCategoryDepthMap = (categorias = []) => {
+  const byId = categorias.reduce((acc, item) => {
+    acc[item.id] = item;
+    return acc;
+  }, {});
+
+  const depthCache = {};
+  const getDepth = (id) => {
+    if (!id || !byId[id]) return 0;
+    if (depthCache[id] !== undefined) return depthCache[id];
+    const parentId = byId[id].parent_id;
+    depthCache[id] = parentId && byId[parentId] ? getDepth(parentId) + 1 : 0;
+    return depthCache[id];
+  };
+
+  categorias.forEach((categoria) => {
+    depthCache[categoria.id] = getDepth(categoria.id);
+  });
+
+  return depthCache;
+};
+
 const findMotoCategoriaByName = (categorias, nombre) =>
   categorias.find((categoria) => categoria.nombre?.toLowerCase() === nombre.toLowerCase()) || null;
 
@@ -327,6 +349,7 @@ const Inventario = () => {
   const [repuestoTipoId, setRepuestoTipoId] = useState("");
   const [repuestoSubcategoriaId, setRepuestoSubcategoriaId] = useState("");
   const [repuestoSubsubcategoriaId, setRepuestoSubsubcategoriaId] = useState("");
+  const [repuestoGaleriaUrlInput, setRepuestoGaleriaUrlInput] = useState("");
   const [categoriasMotos, setCategoriasMotos] = useState([]);
   const [_categoriasMotosLoaded, setCategoriasMotosLoaded] = useState(false);
   const [categoriasRepuestosLoaded, setCategoriasRepuestosLoaded] = useState(false);
@@ -491,6 +514,19 @@ const Inventario = () => {
   }, [categoriasRepuestos, repuestoSubcategoriaId]);
 
   const repuestoCategorias = useMemo(() => ["all", ...repuestoTipos.map((cat) => cat.id)], [repuestoTipos]);
+  const repuestoCategoryDepthById = useMemo(
+    () => buildRepuestoCategoryDepthMap(categoriasRepuestos),
+    [categoriasRepuestos]
+  );
+  const repuestoParentCandidates = useMemo(
+    () =>
+      categoriasRepuestos.filter(
+        (categoria) =>
+          categoria.id !== categoriaEditingId &&
+          (repuestoCategoryDepthById[categoria.id] ?? 0) < 2
+      ),
+    [categoriasRepuestos, categoriaEditingId, repuestoCategoryDepthById]
+  );
 
   const getRepuestoDescendantIds = (rootId) => {
     const descendants = [];
@@ -637,6 +673,11 @@ const Inventario = () => {
   };
 
   const handleCategoriaCreateChild = (tipo) => {
+    const depth = repuestoCategoryDepthById[tipo.id] ?? 0;
+    if (depth >= 2) {
+      Swal.fire("Límite alcanzado", "Solo se permiten 3 niveles: categoría, subcategoría y subsubcategoría.", "info");
+      return;
+    }
     setCategoriaEditingId(null);
     setCategoriaForm({
       ...initialCategoriaForm,
@@ -698,6 +739,7 @@ const Inventario = () => {
     setRepuestoImageFile(null);
     setRepuestoImagePreview("");
     setRepuestoImageUrlError("");
+    setRepuestoGaleriaUrlInput("");
   };
 
   const handleOpenCreateModal = () => {
@@ -741,6 +783,7 @@ const Inventario = () => {
     setRepuestoImageFile(null);
     setRepuestoImagePreview("");
     setRepuestoImageUrlError("");
+    setRepuestoGaleriaUrlInput("");
   };
 
   const handleCategoriaEdit = (categoria) => {
@@ -839,7 +882,39 @@ const Inventario = () => {
     setRepuestoImagePreview(repuesto.imagen_url || "");
     setRepuestoImageFile(null);
     setRepuestoImageUrlError("");
+    setRepuestoGaleriaUrlInput("");
     setRepuestoModalOpen(true);
+  };
+
+  const handleAddRepuestoGaleriaUrl = () => {
+    const trimmed = repuestoGaleriaUrlInput.trim();
+    if (!trimmed || !isValidUrl(trimmed)) {
+      Swal.fire("Validación", "Ingresa una URL válida (http/https) para la imagen del carrusel.", "warning");
+      return;
+    }
+
+    if ((repuestoForm.galeria_imagenes || []).length >= 5) {
+      Swal.fire("Límite alcanzado", "Solo puedes agregar hasta 5 imágenes en el carrusel.", "info");
+      return;
+    }
+
+    if ((repuestoForm.galeria_imagenes || []).includes(trimmed)) {
+      Swal.fire("Validación", "Esa imagen ya fue agregada al carrusel.", "info");
+      return;
+    }
+
+    setRepuestoForm((prev) => ({
+      ...prev,
+      galeria_imagenes: [...(prev.galeria_imagenes || []), trimmed],
+    }));
+    setRepuestoGaleriaUrlInput("");
+  };
+
+  const handleRemoveRepuestoGaleriaUrl = (index) => {
+    setRepuestoForm((prev) => ({
+      ...prev,
+      galeria_imagenes: (prev.galeria_imagenes || []).filter((_, idx) => idx !== index),
+    }));
   };
 
   const handleImageChange = (event) => {
@@ -1195,7 +1270,7 @@ const Inventario = () => {
       modelo: repuestoForm.modelo.trim() || null,
       cantidad_por_paquete: repuestoForm.cantidad_por_paquete ? Number(repuestoForm.cantidad_por_paquete) : null,
       marca_logo_url: repuestoForm.marca_logo_url.trim() || null,
-      galeria_imagenes: (repuestoForm.galeria_imagenes || []).filter(Boolean),
+      galeria_imagenes: (repuestoForm.galeria_imagenes || []).filter(Boolean).slice(0, 5),
     };
 
     if (Number.isNaN(payload.precio) || Number.isNaN(payload.stock)) {
@@ -1302,6 +1377,14 @@ const Inventario = () => {
     if (!isCreatingRepuestoType && repuestoTipos.length > 0 && !categoriaForm.parent_id) {
       Swal.fire("Validación", "Selecciona un tipo para la subcategoría", "warning");
       return;
+    }
+
+    if (!isCreatingRepuestoType && categoriaForm.parent_id) {
+      const parentDepth = repuestoCategoryDepthById[categoriaForm.parent_id] ?? 0;
+      if (parentDepth >= 2) {
+        Swal.fire("Validación", "No se puede crear un cuarto nivel. Máximo permitido: categoría / subcategoría / subsubcategoría.", "warning");
+        return;
+      }
     }
 
     setSaving(true);
@@ -1604,9 +1687,11 @@ const Inventario = () => {
             <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${categoria.estado ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-500"}`}>
               {categoria.estado ? "Activa" : "Inactiva"}
             </span>
-            <button type="button" onClick={() => handleCategoriaCreateChild(categoria)} className="px-3 py-1.5 text-xs font-bold rounded-full bg-yellow-400 text-black">
-              + Hija
-            </button>
+            {level < 2 && (
+              <button type="button" onClick={() => handleCategoriaCreateChild(categoria)} className="px-3 py-1.5 text-xs font-bold rounded-full bg-yellow-400 text-black">
+                + Hija
+              </button>
+            )}
             <button type="button" onClick={() => handleCategoriaEdit(categoria)} className="p-1.5 rounded-lg border border-blue-200 text-blue-600">
               <Pencil size={12} />
             </button>
@@ -1649,7 +1734,7 @@ const Inventario = () => {
       <p className="text-[#334b68] text-sm">
         {buildRepuestoCategoryLabel(categoriasRepuestos, repuesto.categoria_id, repuesto.categoria || "-")}
       </p>
-      <p className="text-green-600 text-lg font-bold">${Number(repuesto.precio || 0).toLocaleString()}</p>
+      <p className="text-green-600 text-lg font-bold">S/ {Number(repuesto.precio || 0).toLocaleString()}</p>
       <span className={`inline-flex w-fit px-3 py-1 rounded-full font-bold text-[11px] uppercase ${estadoClass[(repuesto.estado || "disponible").toLowerCase()] || "bg-gray-100 text-gray-600"}`}>
         {(repuesto.estado || "disponible").toUpperCase()}
       </span>
@@ -2036,17 +2121,15 @@ const Inventario = () => {
                     <option value="">
                       {isCreatingRepuestoType ? "Se creará como categoría principal" : "Selecciona la categoría padre"}
                     </option>
-                    {categoriasRepuestos
-                      .filter((categoria) => categoria.id !== categoriaEditingId)
-                      .map((categoria) => (
+                    {repuestoParentCandidates.map((categoria) => (
                         <option key={categoria.id} value={categoria.id}>
                           {buildRepuestoCategoryLabel(categoriasRepuestos, categoria.id, categoria.nombre)}
                         </option>
                       ))}
                   </select>
-                  {!isCreatingRepuestoType && categoriasRepuestos.length === 0 && (
+                  {!isCreatingRepuestoType && repuestoParentCandidates.length === 0 && (
                     <p className="text-xs text-gray-500 mt-2">
-                      Crea una categoría principal primero para asignar subcategorías o subsubcategorías.
+                      No hay categorías disponibles para crear hijas. Recuerda: máximo 3 niveles.
                     </p>
                   )}
                 </div>
@@ -2674,18 +2757,44 @@ const Inventario = () => {
             </div>
 
             <div>
-              <label className="text-sm font-semibold text-gray-700">Carrusel de imágenes (1 URL por línea)</label>
-              <textarea
-                value={(repuestoForm.galeria_imagenes || []).join("\n")}
-                onChange={(event) => setRepuestoForm((prev) => ({
-                  ...prev,
-                  galeria_imagenes: event.target.value.split("\n").map((item) => item.trim()).filter(Boolean),
-                }))}
-                placeholder="https://...\nhttps://..."
-                rows={4}
-                className="mt-2 w-full border rounded-xl px-3 py-2 bg-gray-50 resize-none"
-              />
-              <p className="text-xs text-gray-500 mt-1">Estas imágenes se mostrarán como carrusel en el detalle público del repuesto.</p>
+              <label className="text-sm font-semibold text-gray-700">Carrusel de imágenes</label>
+              <div className="mt-2 flex gap-2">
+                <input
+                  value={repuestoGaleriaUrlInput}
+                  onChange={(event) => setRepuestoGaleriaUrlInput(event.target.value)}
+                  placeholder="https://..."
+                  className="flex-1 border rounded-xl px-3 py-2 bg-gray-50"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddRepuestoGaleriaUrl}
+                  disabled={(repuestoForm.galeria_imagenes || []).length >= 5}
+                  className="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold disabled:opacity-50"
+                >
+                  Agregar URL
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Máximo 5 imágenes. Estas imágenes se mostrarán como carrusel en el detalle público del repuesto.
+              </p>
+
+              {(repuestoForm.galeria_imagenes || []).length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {(repuestoForm.galeria_imagenes || []).map((url, index) => (
+                    <div key={`${url}-${index}`} className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                      <span className="text-xs font-semibold text-gray-500">{index + 1}.</span>
+                      <p className="text-xs text-slate-700 truncate flex-1">{url}</p>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveRepuestoGaleriaUrl(index)}
+                        className="text-xs font-semibold text-red-500"
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-end gap-4 pt-2">
