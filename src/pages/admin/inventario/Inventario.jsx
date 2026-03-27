@@ -2301,7 +2301,7 @@ const Inventario = () => {
                 )}
               </div>
               <div>
-                <label className="text-sm font-semibold text-gray-700">Logo de la empresa</label>
+                <label className="text-sm font-semibold text-gray-700">Logo de la Marca</label>
                 <input
                   type="file"
                   accept="image/*"
