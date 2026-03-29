@@ -20,19 +20,19 @@ const Home = () => {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6 items-center">
 
               <img
-                src="./public/ZUERTS.webp"
+                src="/ZUERTS.webp"
                 alt="ZUERTS"
                 className="mx-auto h-24 object-contain opacity-70 hover:opacity-100 transition"
               />
 
               <img
-                src="./public/ZKM.webp"
+                src="/ZKM.webp"
                 alt="ZKM"
                 className="mx-auto h-24 object-contain opacity-70 hover:opacity-100 transition"
               />
 
               <img
-                src="./public/Vinto.webp"
+                src="/Vinto.webp"
                 alt="Vinto"
                 className="mx-auto h-24 object-contain opacity-70 hover:opacity-100 transition"
               />
