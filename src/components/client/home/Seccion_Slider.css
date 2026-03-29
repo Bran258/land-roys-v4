@@ -1,63 +1,171 @@
-/* Paginación como línea */
-/* Contenedor centrado real */
+.custom-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+
+  width: 46px;
+  height: 46px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 20;
+  cursor: pointer;
+
+  border-radius: 999px;
+
+  background: rgba(15, 15, 15, 0.25);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  transition: all 0.2s ease;
+}
+
+/* posiciones */
+.swiper-button-prev.custom-arrow {
+  left: 16px;
+}
+
+.swiper-button-next.custom-arrow {
+  right: 16px;
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  display: none !important;
+  content: "";
+}
+
+/* icono */
+.custom-arrow svg {
+  width: 18px;
+  height: 18px;
+
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  transition: transform 0.2s ease, stroke 0.2s ease;
+}
+
+/* hover moderno */
+.custom-arrow:hover {
+  transform: translateY(-50%) scale(1.08);
+
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.22);
+
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.custom-arrow:hover svg {
+  transform: scale(1.1);
+  stroke: #ffffff;
+}
+
+/* click feedback */
+.custom-arrow:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+/* focus accesible */
+.custom-arrow:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 3px;
+}
+
+/* entrada suave */
+.custom-arrow {
+  animation: arrowFadeIn 0.25s ease;
+}
+
+@keyframes arrowFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.9);
+  }
+  to {
+    opacity: 0.85;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+/* ocultar en móvil */
+@media (max-width: 768px) {
+  .custom-arrow {
+    display: none;
+  }
+}
+/* =========================
+   PAGINACIÓN - CLEAN UI
+========================= */
+
 .swiper-pagination {
-  bottom: 45px !important;
+  bottom: 40px !important;
 
   display: flex !important;
   justify-content: center;
   align-items: center;
-  gap: 8px;
 
-  width: 200px !important;
+  gap: 6px;
+  width: 180px !important;
 
   left: 0 !important;
   right: 0 !important;
   margin: 0 auto !important;
 }
 
-/* Barra base */
+/* bullets base */
 .swiper-pagination-bullet {
   flex: 1;
-  height: 5px !important;
+  height: 4px !important;
+
   border-radius: 999px !important;
-  background: #ffffff !important; /* negro intenso */
-  position: relative;
+
+  background: rgba(255, 255, 255, 0.35) !important;
+
   overflow: hidden;
-  transition: all 0.3s ease;
+  position: relative;
+
+  transition: all 0.25s ease;
 }
 
-
-/* Hover sutil */
-.swiper-pagination-bullet:hover {
-  background: #ffffff !important;
-}
-
-/* Activo */
+/* activo base */
 .swiper-pagination-bullet-active {
-  background: #ffffff !important;
+  background: rgba(255, 255, 255, 0.6) !important;
 }
 
-/* Barra animada naranja elegante */
+/* progreso activo */
 .swiper-pagination-bullet-active::after {
   content: "";
   position: absolute;
   inset: 0;
+
   width: 0%;
-  border-radius: 999px;
 
-  background: linear-gradient(
-    90deg,
-    #ff4d00,
-    #ff6a00,
-    #ff8c00
-  );
-
-  box-shadow: 0 0 10px rgba(255, 102, 0, 0.5);
+  background: linear-gradient(90deg, #ff4d00, #ff6a00, #ff8c00);
+  box-shadow: 0 0 8px rgba(255, 120, 0, 0.35);
 
   animation: progress 4s linear forwards;
 }
 
 @keyframes progress {
-  from { width: 0%; }
-  to { width: 100%; }
+  from {
+    width: 0%;
+  }
+
+  to {
+    width: 100%;
+  }
 }

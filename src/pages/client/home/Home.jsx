@@ -17,36 +17,24 @@ const Home = () => {
         <section className="w-full py-16 bg-white">
           <div className="max-w-7xl mx-auto px-6">
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 items-center">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6 items-center">
 
               <img
-                src="https://logo.clearbit.com/honda.com"
-                alt="Honda"
-                className="mx-auto h-12 object-contain opacity-70 hover:opacity-100 transition"
+                src="./public/ZUERTS.webp"
+                alt="ZUERTS"
+                className="mx-auto h-24 object-contain opacity-70 hover:opacity-100 transition"
               />
 
               <img
-                src="https://logo.clearbit.com/yamaha-motor.eu"
-                alt="Yamaha"
-                className="mx-auto h-12 object-contain opacity-70 hover:opacity-100 transition"
+                src="./public/ZKM.webp"
+                alt="ZKM"
+                className="mx-auto h-24 object-contain opacity-70 hover:opacity-100 transition"
               />
 
               <img
-                src="https://logo.clearbit.com/global.suzuki"
-                alt="Suzuki"
-                className="mx-auto h-12 object-contain opacity-70 hover:opacity-100 transition"
-              />
-
-              <img
-                src="https://logo.clearbit.com/ktm.com"
-                alt="KTM"
-                className="mx-auto h-12 object-contain opacity-70 hover:opacity-100 transition"
-              />
-
-              <img
-                src="https://logo.clearbit.com/kawasaki.com"
-                alt="Kawasaki"
-                className="mx-auto h-12 object-contain opacity-70 hover:opacity-100 transition"
+                src="./public/Vinto.webp"
+                alt="Vinto"
+                className="mx-auto h-24 object-contain opacity-70 hover:opacity-100 transition"
               />
 
             </div>
